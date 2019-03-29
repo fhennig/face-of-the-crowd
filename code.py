@@ -64,6 +64,9 @@ while rval:
         break
     if key == 102:
         print(face_landmarks)
+        x = face_landmarks[0]['chin'][8]
+        x = (x[0] * scaling_factor, x[1] * scaling_factor)
+        cv2.circle(frame, x, 2, (0, 255,0), 2)
 
 cv2.destroyWindow("preview")
 video_capture.release()

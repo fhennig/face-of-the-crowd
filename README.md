@@ -24,3 +24,12 @@ picture taken and added to the average.
 - Needs to read out the image data from the camera and show it on the
   screen
 - ML part: Needs to extract the face from the picture
+
+## Roadmap
+
+To align the faces, face landmarks need to be extracted.
+The landmarks can be extracted with openCV.
+Based on the landmarks any rotation of the face can be accounted for.
+
+Images need to be saved (maybe for a start just with the press of a
+button) and then overlayed (using the landmarks).
