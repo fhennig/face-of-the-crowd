@@ -50,7 +50,7 @@ def align_face(frame, face_location, face_landmarks):
     assert isinstance(face_landmarks, dict)
     for area_name, landmarks in face_landmarks.items():
         for lm in landmarks:
-            cv2.circle(frame, lm, 10, (0, 0, 255), 5)
+            cv2.circle(frame, lm, 2, (0, 0, 255))
     return frame
 
 
@@ -106,16 +106,11 @@ class Application:
             # get a single frame
             rval, frame = self.video_capture.read()
 
+            # get the faces
             if process_this_frame:
                 face_locations, face_landmarks = get_faces(frame, self.scaling_factor)
 
             process_this_frame = not process_this_frame
-
-            for face_location in face_locations:
-                draw_face_box(frame, face_location)
-
-            # Display the resulting image
-            cv2.imshow(self.preview_window, frame)
 
             # exit on ESC
             key = cv2.waitKey(20)
@@ -123,6 +118,14 @@ class Application:
                 break
             if key == 112:  # take screenshot on p
                 self.update_genimage(frame, face_locations, face_landmarks)
+
+            # draw boxes
+            for face_location in face_locations:
+                draw_face_box(frame, face_location)
+
+            # Display the resulting image
+            cv2.imshow(self.preview_window, frame)
+
 
 
 def create_parser():
