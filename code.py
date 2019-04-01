@@ -90,6 +90,7 @@ class Application:
         self.preview_window = "preview"
         self.genimage_window = "genimage"
         self.video_capture = None
+        self.collected_frames = []
 
     def init(self):
         # initialize window
@@ -116,17 +117,20 @@ class Application:
         self.video_capture.release()
 
     def update_genimage(self, frame, face_locations, face_landmarks):
-        processed_frames = []
         for i in range(len(face_locations)):
             face_loc = face_locations[i]
             face_marks = face_landmarks[i]
             p_frame = align_face(frame, face_loc, face_marks)
-            processed_frames.append(p_frame)
+            self.collected_frames.append(p_frame)
 
-        if processed_frames:
-            processed_frame = processed_frames[0]
-            processed_frame = scale_frame(processed_frame, 1 / 2)
-            cv2.imshow(self.genimage_window, processed_frame)
+        if len(self.collected_frames) > 0:
+            f = np.zeros(shape=self.collected_frames[0].shape,
+                         dtype=np.float64)
+            for pframe in self.collected_frames:
+                transparent_image = (pframe / 255) * (1 / len(self.collected_frames))
+                f = cv2.add(f, transparent_image)
+            f = scale_frame(f, 1 / 2)
+            cv2.imshow(self.genimage_window, f)
 
     def update_preview(self, frame, face_locations):
         factor = 1 / 2
