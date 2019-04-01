@@ -7,7 +7,16 @@ visitors of the exhibition.
 Besides the screen there is a camera, where people can have their
 picture taken and added to the average.
 
-## Setup
+
+## Motivation
+
+The project is meant to convey the fascinating side of science with
+an artistic element.
+
+(There will be more here in the future.)
+
+
+## Setup / Idea
 
 ### Hardware
 
@@ -25,11 +34,17 @@ picture taken and added to the average.
   screen
 - ML part: Needs to extract the face from the picture
 
+## Implementation
+
+Uses OpenCV and [face_recognition](https://github.com/ageitgey/face_recognition).
+
+
 ## Roadmap
 
-To align the faces, face landmarks need to be extracted.
-The landmarks can be extracted with openCV.
-Based on the landmarks any rotation of the face can be accounted for.
+- To align the faces, face landmarks need to be extracted. DONE
+- Based on the landmarks any rotation of the face can be accounted for. DONE
+- Images need to be saved (maybe for a start just with the press of a
+  button) and then overlayed (using the landmarks). DONE
 
-Images need to be saved (maybe for a start just with the press of a
-button) and then overlayed (using the landmarks).
+- Enhance alignments by using all landmarks as described
+  [here](https://www.learnopencv.com/face-morph-using-opencv-cpp-python/).
