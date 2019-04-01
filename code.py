@@ -2,6 +2,7 @@
 import face_recognition
 import cv2
 import argparse
+import numpy as np
 
 
 def scale_face_locations(face_locations, factor):
@@ -59,6 +60,10 @@ def draw_face_box(frame, face_location):
     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
 
+LEFT_EYE_EDGE = (378, 994)
+RIGHT_EYE_EDGE = (674, 994)
+
+
 def align_face(frame, face_location, face_landmarks):
     """Takes a frame, face_location and face_landmarks and centers the
     image and warps it.
@@ -68,6 +73,13 @@ def align_face(frame, face_location, face_landmarks):
     for area_name, landmarks in face_landmarks.items():
         for lm in landmarks:
             cv2.circle(frame, lm, 2, (0, 0, 255), 4)
+
+    M = cv2.getAffineTransform(np.float32([face_landmarks['left_eye'][1],
+                                           face_landmarks['right_eye'][1],
+                                           face_landmarks['nose_bridge'][3]]),
+                               np.float32([(404, 876), (644, 880), (532, 1036)]))
+    h, w, _ = frame.shape
+    frame = cv2.warpAffine(frame, M, (w, h))
     return frame
 
 
@@ -113,11 +125,11 @@ class Application:
 
         if processed_frames:
             processed_frame = processed_frames[0]
-            processed_frame = scale_frame(frame, 1 / 4)
+            processed_frame = scale_frame(processed_frame, 1 / 2)
             cv2.imshow(self.genimage_window, processed_frame)
 
     def update_preview(self, frame, face_locations):
-        factor = 1 / 4
+        factor = 1 / 2
         frame = scale_frame(frame, factor)
         if face_locations:
             face_locations = scale_face_locations(face_locations, factor)
