@@ -69,8 +69,8 @@ class Application:
 
         # get webcam
         self.video_capture = cv2.VideoCapture(self.camera_number)
-        self.video_capture.set(3, 1280)
-        self.video_capture.set(4, 720)
+        self.video_capture.set(3,1920)
+        self.video_capture.set(4, 1080)
         
         if self.video_capture.isOpened():  # try to get the first frame
             rval, frame = self.video_capture.read()
@@ -96,6 +96,14 @@ class Application:
         if processed_frames:
             cv2.imshow(self.genimage_window, processed_frames[0])
 
+    def update_preview(self, frame, face_locations):
+        # draw boxes
+        for face_location in face_locations:
+            draw_face_box(frame, face_location)
+
+        # Display the resulting image
+        cv2.imshow(self.preview_window, frame)
+
     def start(self):
         face_locations = []
         face_landmarks = []
@@ -105,6 +113,9 @@ class Application:
         while rval:
             # get a single frame
             rval, frame = self.video_capture.read()
+
+            frame = cv2.transpose(frame)
+            frame = cv2.flip(frame, flipCode=1)
 
             # get the faces
             if process_this_frame:
@@ -119,13 +130,7 @@ class Application:
             if key == 112:  # take screenshot on p
                 self.update_genimage(frame, face_locations, face_landmarks)
 
-            # draw boxes
-            for face_location in face_locations:
-                draw_face_box(frame, face_location)
-
-            # Display the resulting image
-            cv2.imshow(self.preview_window, frame)
-
+            self.update_preview(frame, face_locations)
 
 
 def create_parser():
