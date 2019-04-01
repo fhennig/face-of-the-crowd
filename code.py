@@ -4,6 +4,15 @@ import cv2
 import argparse
 
 
+def scale_face_locations(face_locations, factor):
+    face_locations = [(int(top * factor),
+                       int(right * factor),
+                       int(bottom * factor),
+                       int(left * factor))
+                      for top, right, bottom, left in face_locations]
+    return face_locations
+
+
 def get_faces(frame, scaling_factor):
     # Resize frame of video for faster face recognition processing
     small_frame = cv2.resize(frame, (0, 0), fx=1/scaling_factor, fy=1/scaling_factor)
@@ -16,11 +25,7 @@ def get_faces(frame, scaling_factor):
     face_locations = face_recognition.face_locations(rgb_small_frame)
     face_landmarks = face_recognition.face_landmarks(rgb_small_frame)
     # Scale them back up
-    face_locations = [(top * scaling_factor,
-                       right * scaling_factor,
-                       bottom * scaling_factor,
-                       left * scaling_factor)
-                      for top, right, bottom, left in face_locations]
+    face_locations = scale_face_locations(face_locations, scaling_factor)
     face_landmarks_new = []
     for flms in face_landmarks:
         flms_new = dict()
@@ -97,9 +102,16 @@ class Application:
             cv2.imshow(self.genimage_window, processed_frames[0])
 
     def update_preview(self, frame, face_locations):
-        # draw boxes
-        for face_location in face_locations:
-            draw_face_box(frame, face_location)
+        factor = 4
+        height, width, _ = frame.shape
+        new_h = int(height / factor)
+        new_w = int(width / factor)
+        frame = cv2.resize(frame, (new_w, new_h))
+        if face_locations:
+            face_locations = scale_face_locations(face_locations, 1.0 / factor)
+            # draw boxes
+            for face_location in face_locations:
+                draw_face_box(frame, face_location)
 
         # Display the resulting image
         cv2.imshow(self.preview_window, frame)
@@ -120,6 +132,8 @@ class Application:
             # get the faces
             if process_this_frame:
                 face_locations, face_landmarks = get_faces(frame, self.scaling_factor)
+
+                print(len(face_locations))
 
             process_this_frame = not process_this_frame
 
