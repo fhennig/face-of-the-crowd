@@ -13,6 +13,19 @@ def scale_face_locations(face_locations, factor):
     return face_locations
 
 
+def scale_face_landmarks(face_landmarks, factor):
+    face_landmarks_new = []
+    for flms in face_landmarks:
+        flms_new = dict()
+        for area, lms in flms.items():
+            lms = [(int(x * factor),
+                    int(y * factor))
+                   for x, y in lms]
+            flms_new[area] = lms
+        face_landmarks_new.append(flms_new)
+    return face_landmarks_new
+
+
 def get_faces(frame, scaling_factor):
     # Resize frame of video for faster face recognition processing
     small_frame = cv2.resize(frame, (0, 0), fx=1/scaling_factor, fy=1/scaling_factor)
@@ -26,16 +39,7 @@ def get_faces(frame, scaling_factor):
     face_landmarks = face_recognition.face_landmarks(rgb_small_frame)
     # Scale them back up
     face_locations = scale_face_locations(face_locations, scaling_factor)
-    face_landmarks_new = []
-    for flms in face_landmarks:
-        flms_new = dict()
-        for area, lms in flms.items():
-            lms = [(x * scaling_factor,
-                    y * scaling_factor)
-                   for x, y in lms]
-            flms_new[area] = lms
-        face_landmarks_new.append(flms_new)
-    face_landmarks = face_landmarks_new
+    face_landmarks = scale_face_landmarks(face_landmarks, scaling_factor)
 
     return face_locations, face_landmarks
 
@@ -132,8 +136,6 @@ class Application:
             # get the faces
             if process_this_frame:
                 face_locations, face_landmarks = get_faces(frame, self.scaling_factor)
-
-                print(len(face_locations))
 
             process_this_frame = not process_this_frame
 
