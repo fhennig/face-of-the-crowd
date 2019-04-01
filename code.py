@@ -37,56 +37,61 @@ def draw_face_box(frame, face_location, scaling_factor):
     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
 
-def stuff(video_capture):
-    """Does the stuff.
+class Application:
+    def __init__(self, video_capture):
+        self.video_capture = video_capture
 
-    video_capture: int, which video input to use (0, 1)."""
-
-    # initialize window
-    cv2.namedWindow("preview")
-    # get webcam
-    video_capture = cv2.VideoCapture(video_capture)
-    video_capture.set(3, 1280)
-    video_capture.set(4, 720)
-
-    scaling_factor = 4
-
-    face_locations = []
-    face_landmarks = []
-    process_this_frame = True
-
-    if video_capture.isOpened():  # try to get the first frame
-        rval, frame = video_capture.read()
-    else:
-        rval = False
-
-    while rval:
-        # get a single frame
-        rval, frame = video_capture.read()
-
-        if process_this_frame:
-            face_locations, face_landmarks = get_faces(frame, scaling_factor)
-
-        process_this_frame = not process_this_frame
-
-        for face_location in face_locations:
-            draw_face_box(frame, face_location, scaling_factor)
-
-        # Display the resulting image
-        cv2.imshow("preview", frame)
-
-        # exit on ESC
-        key = cv2.waitKey(20)
-        if key == 113:  # exit on q
-            break
-        if key == 102:
-            print(face_landmarks)
-            x = face_landmarks[0]['chin'][8]
-            x = (x[0] * scaling_factor, x[1] * scaling_factor)
-            cv2.circle(frame, x, 2, (0, 255,0), 2)
-
-    cv2.destroyWindow("preview")
-    video_capture.release()
+    def start(self):
+        """Does the stuff.
+    
+        video_capture: int, which video input to use (0, 1)."""
+    
+        # initialize window
+        cv2.namedWindow("preview")
+        cv2.namedWindow("genimage")
+        # get webcam
+        video_capture = cv2.VideoCapture(self.video_capture)
+        video_capture.set(3, 1280)
+        video_capture.set(4, 720)
+    
+        scaling_factor = 4
+    
+        face_locations = []
+        face_landmarks = []
+        process_this_frame = True
+    
+        if video_capture.isOpened():  # try to get the first frame
+            rval, frame = video_capture.read()
+        else:
+            rval = False
+    
+        while rval:
+            # get a single frame
+            rval, frame = video_capture.read()
+    
+            if process_this_frame:
+                face_locations, face_landmarks = get_faces(frame, scaling_factor)
+    
+            process_this_frame = not process_this_frame
+    
+            for face_location in face_locations:
+                draw_face_box(frame, face_location, scaling_factor)
+    
+            # Display the resulting image
+            cv2.imshow("preview", frame)
+    
+            # exit on ESC
+            key = cv2.waitKey(20)
+            if key == 113:  # exit on q
+                break
+            if key == 102:
+                print(face_landmarks)
+                x = face_landmarks[0]['chin'][8]
+                x = (x[0] * scaling_factor, x[1] * scaling_factor)
+                cv2.circle(frame, x, 2, (0, 255,0), 2)
+    
+        cv2.destroyWindow("preview")
+        video_capture.release()
 
 
 def create_parser():
@@ -104,7 +109,8 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    stuff(args.camera_input)
+    a = Application(args.camera_input)
+    a.start()
 
 
 if __name__ == "__main__":
