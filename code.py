@@ -26,6 +26,14 @@ def scale_face_landmarks(face_landmarks, factor):
     return face_landmarks_new
 
 
+def scale_frame(frame, factor):
+    height, width, _ = frame.shape
+    new_h = int(height * factor)
+    new_w = int(width * factor)
+    frame = cv2.resize(frame, (new_w, new_h))
+    return frame
+
+
 def get_faces(frame, scaling_factor):
     # Resize frame of video for faster face recognition processing
     small_frame = cv2.resize(frame, (0, 0), fx=1/scaling_factor, fy=1/scaling_factor)
@@ -59,7 +67,7 @@ def align_face(frame, face_location, face_landmarks):
     assert isinstance(face_landmarks, dict)
     for area_name, landmarks in face_landmarks.items():
         for lm in landmarks:
-            cv2.circle(frame, lm, 2, (0, 0, 255))
+            cv2.circle(frame, lm, 2, (0, 0, 255), 4)
     return frame
 
 
@@ -78,9 +86,9 @@ class Application:
 
         # get webcam
         self.video_capture = cv2.VideoCapture(self.camera_number)
-        self.video_capture.set(3,1920)
+        self.video_capture.set(3, 1920)
         self.video_capture.set(4, 1080)
-        
+
         if self.video_capture.isOpened():  # try to get the first frame
             rval, frame = self.video_capture.read()
         else:
@@ -102,17 +110,17 @@ class Application:
             face_marks = face_landmarks[i]
             p_frame = align_face(frame, face_loc, face_marks)
             processed_frames.append(p_frame)
+
         if processed_frames:
-            cv2.imshow(self.genimage_window, processed_frames[0])
+            processed_frame = processed_frames[0]
+            processed_frame = scale_frame(frame, 1 / 4)
+            cv2.imshow(self.genimage_window, processed_frame)
 
     def update_preview(self, frame, face_locations):
-        factor = 4
-        height, width, _ = frame.shape
-        new_h = int(height / factor)
-        new_w = int(width / factor)
-        frame = cv2.resize(frame, (new_w, new_h))
+        factor = 1 / 4
+        frame = scale_frame(frame, factor)
         if face_locations:
-            face_locations = scale_face_locations(face_locations, 1.0 / factor)
+            face_locations = scale_face_locations(face_locations, factor)
             # draw boxes
             for face_location in face_locations:
                 draw_face_box(frame, face_location)
