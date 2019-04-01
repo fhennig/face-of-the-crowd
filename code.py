@@ -4,6 +4,39 @@ import cv2
 import argparse
 
 
+def get_faces(frame, scaling_factor):
+    # Resize frame of video for faster face recognition processing
+    small_frame = cv2.resize(frame, (0, 0), fx=1/scaling_factor, fy=1/scaling_factor)
+
+    # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
+    rgb_small_frame = small_frame[:, :, ::-1]
+
+    # Only process every other frame of video to save time
+    # Find all the faces and face encodings in the current frame of video
+    face_locations = face_recognition.face_locations(rgb_small_frame)
+    face_landmarks = face_recognition.face_landmarks(rgb_small_frame)
+    return face_locations, face_landmarks
+
+
+def draw_face_box(frame, face_location, scaling_factor):
+    # Display the results
+    top, right, bottom, left = face_location
+    # Scale back up face locations since the frame we detected in was scaled down
+    top *= scaling_factor
+    right *= scaling_factor
+    bottom *= scaling_factor
+    left *= scaling_factor
+
+    # change framesize to portrait crop
+    left -= 80
+    right += 80
+    top -= 200
+    bottom += 100
+
+    # Draw a box around the face
+    cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+
+
 def stuff(video_capture):
     """Does the stuff.
 
@@ -31,36 +64,13 @@ def stuff(video_capture):
         # get a single frame
         rval, frame = video_capture.read()
 
-        # Resize frame of video to 1/4 size for faster face recognition processing
-        small_frame = cv2.resize(frame, (0, 0), fx=1/scaling_factor, fy=1/scaling_factor)
-
-        # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
-        rgb_small_frame = small_frame[:, :, ::-1]
-
-        # Only process every other frame of video to save time
         if process_this_frame:
-            # Find all the faces and face encodings in the current frame of video
-            face_locations = face_recognition.face_locations(rgb_small_frame)
-            face_landmarks = face_recognition.face_landmarks(rgb_small_frame)
+            face_locations, face_landmarks = get_faces(frame, scaling_factor)
 
         process_this_frame = not process_this_frame
 
-        # Display the results
-        for top, right, bottom, left in face_locations:
-            # Scale back up face locations since the frame we detected in was scaled to 1/4 size
-            top *= scaling_factor
-            right *= scaling_factor
-            bottom *= scaling_factor
-            left *= scaling_factor
-
-            # change framesize to portrait crop
-            left -= 80
-            right += 80
-            top -= 200
-            bottom += 100
-
-            # Draw a box around the face
-            cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+        for face_location in face_locations:
+            draw_face_box(frame, face_location, scaling_factor)
 
         # Display the resulting image
         cv2.imshow("preview", frame)
