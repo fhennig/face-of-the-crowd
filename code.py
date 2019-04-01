@@ -4,8 +4,6 @@ import cv2
 import argparse
 
 
-
-
 def get_faces(frame, scaling_factor):
     # Resize frame of video for faster face recognition processing
     small_frame = cv2.resize(frame, (0, 0), fx=1/scaling_factor, fy=1/scaling_factor)
@@ -17,24 +15,29 @@ def get_faces(frame, scaling_factor):
     # Find all the faces and face encodings in the current frame of video
     face_locations = face_recognition.face_locations(rgb_small_frame)
     face_landmarks = face_recognition.face_landmarks(rgb_small_frame)
+    # Scale them back up
+    face_locations = [(top * scaling_factor,
+                       right * scaling_factor,
+                       bottom * scaling_factor,
+                       left * scaling_factor)
+                      for top, right, bottom, left in face_locations]
+    face_landmarks_new = []
+    for flms in face_landmarks:
+        flms_new = dict()
+        for area, lms in flms.items():
+            lms = [(x * scaling_factor,
+                    y * scaling_factor)
+                   for x, y in lms]
+            flms_new[area] = lms
+        face_landmarks_new.append(flms_new)
+    face_landmarks = face_landmarks_new
+
     return face_locations, face_landmarks
 
 
-def draw_face_box(frame, face_location, scaling_factor):
+def draw_face_box(frame, face_location):
     # Display the results
     top, right, bottom, left = face_location
-    # Scale back up face locations since the frame we detected in was scaled down
-    top *= scaling_factor
-    right *= scaling_factor
-    bottom *= scaling_factor
-    left *= scaling_factor
-
-    # change framesize to portrait crop
-    left -= 80
-    right += 80
-    top -= 200
-    bottom += 100
-
     # Draw a box around the face
     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
@@ -44,6 +47,10 @@ def align_face(frame, face_location, face_landmarks):
     image and warps it.
     Returns a frame again, same size as input."""
     # TODO implement aligning
+    assert isinstance(face_landmarks, dict)
+    for area_name, landmarks in face_landmarks.items():
+        for lm in landmarks:
+            cv2.circle(frame, lm, 10, (0, 0, 255), 5)
     return frame
 
 
@@ -79,6 +86,16 @@ class Application:
 
         self.video_capture.release()
 
+    def update_genimage(self, frame, face_locations, face_landmarks):
+        processed_frames = []
+        for i in range(len(face_locations)):
+            face_loc = face_locations[i]
+            face_marks = face_landmarks[i]
+            p_frame = align_face(frame, face_loc, face_marks)
+            processed_frames.append(p_frame)
+        if processed_frames:
+            cv2.imshow(self.genimage_window, processed_frames[0])
+
     def start(self):
         face_locations = []
         face_landmarks = []
@@ -95,7 +112,7 @@ class Application:
             process_this_frame = not process_this_frame
 
             for face_location in face_locations:
-                draw_face_box(frame, face_location, self.scaling_factor)
+                draw_face_box(frame, face_location)
 
             # Display the resulting image
             cv2.imshow(self.preview_window, frame)
@@ -104,13 +121,8 @@ class Application:
             key = cv2.waitKey(20)
             if key == 113:  # exit on q
                 break
-            if key == 102:
-                print(face_landmarks)
-                x = face_landmarks[0]['chin'][8]
-                x = (x[0] * self.scaling_factor, x[1] * self.scaling_factor)
-                cv2.circle(frame, x, 2, (0, 255,0), 2)
             if key == 112:  # take screenshot on p
-                cv2.imshow(self.genimage_window, frame)
+                self.update_genimage(frame, face_locations, face_landmarks)
 
 
 def create_parser():
