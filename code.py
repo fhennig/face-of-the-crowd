@@ -80,6 +80,19 @@ def draw_triangle(frame, triangle):
     cv2.line(frame, pt3, pt1, (0, 255, 0), 4, 8, 0)
 
 
+def generate_edge_points(f_width, f_height):
+    f_height -= 1
+    f_width -= 1
+    return [(0, 0),
+            (0, int(f_height/2)),
+            (0, f_height),
+            (int(f_width/2), 0),
+            (int(f_width/2), f_height),
+            (f_width, 0),
+            (f_width, int(f_height/2)),
+            (f_width, f_height)]
+
+
 def align_face(frame, face_landmarks, lm_targets):
     """Takes a frame and face_landmarks and centers the image and warps
     it.  Returns a frame again, same size as input.
@@ -88,11 +101,16 @@ def align_face(frame, face_landmarks, lm_targets):
     for landmark in face_landmarks:
         cv2.circle(frame, landmark, 2, (0, 0, 255), 4)
 
-    # aligning
-    rect = (0, 0, frame.shape[1], frame.shape[0])
+    # prep delaunay
+    f_h, f_w, _ = frame.shape
+    rect = (0, 0, f_w, f_h)
+    edge_points = generate_edge_points(f_w, f_h)
     subdiv = cv2.Subdiv2D(rect)
     for lm in face_landmarks:
         subdiv.insert(lm)
+    for p in edge_points:
+        subdiv.insert(p)
+    # triangles
     triangle_list = subdiv.getTriangleList()
     for t in triangle_list:
         draw_triangle(frame, t)
