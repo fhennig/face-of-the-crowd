@@ -125,6 +125,17 @@ def align_face(frame, face_landmarks, lm_targets):
     return frame
 
 
+def calc_target_landmarks(face_landmarkss):
+    """Takes a list of face_landmarks (multiple faces) and returns a
+    single face_landmark list.  For each landmark, the average
+    location is calculated."""
+    a = np.array(face_landmarkss)
+    mean = a.mean(axis=0)
+    mean = mean.astype(int)
+    print(mean)
+    return face_landmarkss[0]  # TODO implement
+
+
 class Application:
     def __init__(self, camera_number):
         self.camera_number = camera_number
@@ -158,13 +169,11 @@ class Application:
 
         self.video_capture.release()
 
-    def update_genimage(self, frame, face_landmarks):
+    def update_genimage(self, frame, face_landmarkss):
         """Updates the generated image, the merge of all the faces."""
-        # TODO generate landmark targets by taking the list of targets and
-        # averaging the position of each point
-        lm_targets = []
-        for i in range(len(face_landmarks)):
-            face_marks = face_landmarks[i]
+        lm_targets = calc_target_landmarks(face_landmarkss)
+        for i in range(len(face_landmarkss)):
+            face_marks = face_landmarkss[i]
             p_frame = align_face(frame, face_marks, lm_targets)
             self.collected_frames.append(p_frame)
 
@@ -199,8 +208,8 @@ class Application:
             # get a single frame
             rval, frame = self.video_capture.read()
 
-            frame = cv2.transpose(frame)
-            frame = cv2.flip(frame, flipCode=1)
+#            frame = cv2.transpose(frame)
+#            frame = cv2.flip(frame, flipCode=1)
 
             # get the faces
             if process_this_frame:
