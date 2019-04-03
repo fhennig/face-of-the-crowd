@@ -71,20 +71,31 @@ def face_landmarks_to_list(face_landmarks):
     return l
 
 
-LEFT_EYE_EDGE = (378, 994)
-RIGHT_EYE_EDGE = (674, 994)
+def draw_triangle(frame, triangle):
+    pt1 = (triangle[0], triangle[1])
+    pt2 = (triangle[2], triangle[3])
+    pt3 = (triangle[4], triangle[5])
+    cv2.line(frame, pt1, pt2, (0, 255, 0), 4, 8, 0)
+    cv2.line(frame, pt2, pt3, (0, 255, 0), 4, 8, 0)
+    cv2.line(frame, pt3, pt1, (0, 255, 0), 4, 8, 0)
 
 
-def align_face(frame, face_landmarks):
-
-    """Takes a frame, face_location and face_landmarks and centers the
-    image and warps it.
-    Returns a frame again, same size as input."""
-    # TODO implement aligning
+def align_face(frame, face_landmarks, lm_targets):
+    """Takes a frame and face_landmarks and centers the image and warps
+    it.  Returns a frame again, same size as input.
+    """
     assert isinstance(face_landmarks, list)
     for landmark in face_landmarks:
         cv2.circle(frame, landmark, 2, (0, 0, 255), 4)
 
+    # aligning
+    rect = (0, 0, frame.shape[1], frame.shape[0])
+    subdiv = cv2.Subdiv2D(rect)
+    for lm in face_landmarks:
+        subdiv.insert(lm)
+    triangle_list = subdiv.getTriangleList()
+    for t in triangle_list:
+        draw_triangle(frame, t)
     M = cv2.getAffineTransform(np.float32([face_landmarks[37],
                                            face_landmarks[43],
                                            face_landmarks[30]]),
@@ -131,7 +142,7 @@ class Application:
         """Updates the generated image, the merge of all the faces."""
         for i in range(len(face_landmarks)):
             face_marks = face_landmarks[i]
-            p_frame = align_face(frame, face_marks)
+            p_frame = align_face(frame, face_marks, [])  # TODO insert targets
             self.collected_frames.append(p_frame)
 
         if len(self.collected_frames) > 0:
