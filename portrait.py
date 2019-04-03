@@ -16,12 +16,24 @@ def generate_edge_points(f_width, f_height):
 
 
 def draw_triangle(frame, triangle):
-    pt1 = (triangle[0], triangle[1])
-    pt2 = (triangle[2], triangle[3])
-    pt3 = (triangle[4], triangle[5])
+    pt1 = tuple(triangle[0])
+    pt2 = tuple(triangle[1])
+    pt3 = tuple(triangle[2])
     cv2.line(frame, pt1, pt2, (0, 255, 0), 4, 8, 0)
     cv2.line(frame, pt2, pt3, (0, 255, 0), 4, 8, 0)
     cv2.line(frame, pt3, pt1, (0, 255, 0), 4, 8, 0)
+
+
+def _mask_triangle_only(frame, triangle):
+    # taken from: https://stackoverflow.com/questions/15341538/
+    mask = np.zeros(frame.shape, dtype=np.uint8)
+    # fill the triangle so it doesn't get wiped out when the mask is applied
+    channel_count = frame.shape[2]  # i.e. 3 or 4 depending on image
+    ignore_mask_color = (255,)*channel_count
+    cv2.fillConvexPoly(mask, triangle, ignore_mask_color)
+    # apply the mask
+    masked_image = cv2.bitwise_and(frame, mask)
+    return masked_image
 
 
 def align_face(frame, face_landmarks, lm_targets):
@@ -29,13 +41,18 @@ def align_face(frame, face_landmarks, lm_targets):
     it.  Returns a frame again, same size as input.
     """
     assert isinstance(face_landmarks, list)
-    for landmark in face_landmarks:
-        cv2.circle(frame, landmark, 2, (0, 0, 255), 4)
+#    for landmark in face_landmarks:
+#        cv2.circle(frame, landmark, 2, (0, 0, 255), 4)
+
+    # mapping a point to its target point
+    point_map = dict(zip(face_landmarks, lm_targets))
 
     # prep delaunay
     f_h, f_w, _ = frame.shape
     rect = (0, 0, f_w, f_h)
     edge_points = generate_edge_points(f_w, f_h)
+    for ep in edge_points:
+        point_map[ep] = ep
     subdiv = cv2.Subdiv2D(rect)
     for lm in face_landmarks:
         subdiv.insert(lm)
@@ -43,17 +60,22 @@ def align_face(frame, face_landmarks, lm_targets):
         subdiv.insert(p)
     # triangles
     triangle_list = subdiv.getTriangleList()
-    for t in triangle_list:
-        draw_triangle(frame, t)
-    # TODO for each triangle, get the affine transformation and transform it
-    # then stitch the transformed triangles together
-    M = cv2.getAffineTransform(np.float32([face_landmarks[37],
-                                           face_landmarks[43],
-                                           face_landmarks[30]]),
-                               np.float32([(404, 876), (644, 880), (532, 1036)]))
-    h, w, _ = frame.shape
-    frame = cv2.warpAffine(frame, M, (w, h))
-    return frame
+    triangle_list = [np.reshape(triangle, (3, 2))
+                     for triangle in triangle_list]
+#    for t in triangle_list:
+#        draw_triangle(frame, t)
+
+    new_frame = np.zeros(frame.shape, dtype=np.uint8)
+
+    for triangle in triangle_list:
+        target = np.array([point_map[tuple(p.astype(np.int32))] for p in triangle]).astype(np.float32)
+        M = cv2.getAffineTransform(triangle, target)
+        h, w, _ = frame.shape
+        f = cv2.warpAffine(frame, M, (w, h))
+        f = _mask_triangle_only(f, target.astype(np.int32))
+        new_frame = cv2.add(new_frame, f)
+
+    return new_frame
 
 
 class PortraitGen:
@@ -84,7 +106,6 @@ class PortraitGen:
         a = np.array([rf.face_landmarks for rf in self.recognized_frames])
         mean = a.mean(axis=0)
         mean = mean.astype(int)
-        print(mean)
         self.target_landmarks = mean  # TODO continue implementing and test
 
     def update(self, recognized_frames):
