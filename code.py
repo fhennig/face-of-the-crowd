@@ -60,23 +60,34 @@ def draw_face_box(frame, face_location):
     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
 
+def face_landmarks_to_list(face_landmarks):
+    """Takes a dict of the face landmarks and turns it into a single list
+    of tuples."""
+    l = []
+    for area in ['chin', 'left_eyebrow', 'right_eyebrow', 'nose_bridge', 'nose_tip',
+                 'left_eye', 'right_eye', 'top_lip', 'bottom_lip']:
+        for lm in face_landmarks[area]:
+            l.append(lm)
+    return l
+
+
 LEFT_EYE_EDGE = (378, 994)
 RIGHT_EYE_EDGE = (674, 994)
 
 
 def align_face(frame, face_location, face_landmarks):
+
     """Takes a frame, face_location and face_landmarks and centers the
     image and warps it.
     Returns a frame again, same size as input."""
     # TODO implement aligning
-    assert isinstance(face_landmarks, dict)
-    for area_name, landmarks in face_landmarks.items():
-        for lm in landmarks:
-            cv2.circle(frame, lm, 2, (0, 0, 255), 4)
+    assert isinstance(face_landmarks, list)
+    for landmark in face_landmarks:
+        cv2.circle(frame, landmark, 2, (0, 0, 255), 4)
 
-    M = cv2.getAffineTransform(np.float32([face_landmarks['left_eye'][1],
-                                           face_landmarks['right_eye'][1],
-                                           face_landmarks['nose_bridge'][3]]),
+    M = cv2.getAffineTransform(np.float32([face_landmarks[37],
+                                           face_landmarks[43],
+                                           face_landmarks[30]]),
                                np.float32([(404, 876), (644, 880), (532, 1036)]))
     h, w, _ = frame.shape
     frame = cv2.warpAffine(frame, M, (w, h))
@@ -117,6 +128,7 @@ class Application:
         self.video_capture.release()
 
     def update_genimage(self, frame, face_locations, face_landmarks):
+        """Updates the generated image, the merge of all the faces."""
         for i in range(len(face_locations)):
             face_loc = face_locations[i]
             face_marks = face_landmarks[i]
@@ -160,6 +172,7 @@ class Application:
             # get the faces
             if process_this_frame:
                 face_locations, face_landmarks = get_faces(frame, self.scaling_factor)
+                face_landmarks = [face_landmarks_to_list(flm) for flm in face_landmarks]
 
             process_this_frame = not process_this_frame
 
