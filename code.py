@@ -75,7 +75,7 @@ LEFT_EYE_EDGE = (378, 994)
 RIGHT_EYE_EDGE = (674, 994)
 
 
-def align_face(frame, face_location, face_landmarks):
+def align_face(frame, face_landmarks):
 
     """Takes a frame, face_location and face_landmarks and centers the
     image and warps it.
@@ -127,12 +127,11 @@ class Application:
 
         self.video_capture.release()
 
-    def update_genimage(self, frame, face_locations, face_landmarks):
+    def update_genimage(self, frame, face_landmarks):
         """Updates the generated image, the merge of all the faces."""
-        for i in range(len(face_locations)):
-            face_loc = face_locations[i]
+        for i in range(len(face_landmarks)):
             face_marks = face_landmarks[i]
-            p_frame = align_face(frame, face_loc, face_marks)
+            p_frame = align_face(frame, face_marks)
             self.collected_frames.append(p_frame)
 
         if len(self.collected_frames) > 0:
@@ -181,7 +180,7 @@ class Application:
             if key == 113:  # exit on q
                 break
             if key == 112:  # take screenshot on p
-                self.update_genimage(frame, face_locations, face_landmarks)
+                self.update_genimage(frame, face_landmarks)
 
             self.update_preview(frame, face_locations)
 
