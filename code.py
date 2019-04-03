@@ -114,6 +114,8 @@ def align_face(frame, face_landmarks, lm_targets):
     triangle_list = subdiv.getTriangleList()
     for t in triangle_list:
         draw_triangle(frame, t)
+    # TODO for each triangle, get the affine transformation and transform it
+    # then stitch the transformed triangles together
     M = cv2.getAffineTransform(np.float32([face_landmarks[37],
                                            face_landmarks[43],
                                            face_landmarks[30]]),
@@ -158,9 +160,12 @@ class Application:
 
     def update_genimage(self, frame, face_landmarks):
         """Updates the generated image, the merge of all the faces."""
+        # TODO generate landmark targets by taking the list of targets and
+        # averaging the position of each point
+        lm_targets = []
         for i in range(len(face_landmarks)):
             face_marks = face_landmarks[i]
-            p_frame = align_face(frame, face_marks, [])  # TODO insert targets
+            p_frame = align_face(frame, face_marks, lm_targets)
             self.collected_frames.append(p_frame)
 
         if len(self.collected_frames) > 0:
