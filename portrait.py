@@ -24,12 +24,37 @@ def draw_triangle(frame, triangle):
     cv2.line(frame, pt3, pt1, (0, 255, 0), 4, 8, 0)
 
 
+def _enlargen_triangle(triangle, delta):
+    p_new = []
+    for i in range(len(triangle)):
+        vx, vy = triangle[i]
+        rest = np.vstack((triangle[:i], triangle[i:]))
+        rest_x = [v[0] for v in rest]
+        rest_y = [v[1] for v in rest]
+        # no x that is bigger
+        if not [x for x in rest_x
+                if x > vx]:
+            vx += delta
+        if not [x for x in rest_x
+                if x < vx]:
+            vx -= delta
+        if not [y for y in rest_y
+                if y > vy]:
+            vy += delta
+        if not [y for y in rest_y
+                if y < vy]:
+            vy -= delta
+        p_new.append((vx, vy))
+    return np.array(p_new)
+
+
 def _mask_triangle_only(frame, triangle):
     # taken from: https://stackoverflow.com/questions/15341538/
     mask = np.zeros(frame.shape, dtype=np.uint8)
     # fill the triangle so it doesn't get wiped out when the mask is applied
     channel_count = frame.shape[2]  # i.e. 3 or 4 depending on image
     ignore_mask_color = (255,)*channel_count
+    triangle = _enlargen_triangle(triangle, -1)
     cv2.fillConvexPoly(mask, triangle, ignore_mask_color)
     # apply the mask
     masked_image = cv2.bitwise_and(frame, mask)
