@@ -90,15 +90,18 @@ def align_face(frame, face_landmarks, lm_targets):
 #    for t in triangle_list:
 #        draw_triangle(frame, t)
 
-    new_frame = np.zeros(frame.shape, dtype=np.uint8)
+    new_frame = np.zeros(frame.shape, dtype=frame.dtype)
 
     for triangle in triangle_list:
-        target = np.array([point_map[tuple(p.astype(np.int32))] for p in triangle]).astype(np.float32)
-        M = cv2.getAffineTransform(triangle, target)
-        h, w, _ = frame.shape
-        f = cv2.warpAffine(frame, M, (w, h))
-        f = _mask_triangle_only(f, target.astype(np.int32))
-        new_frame = cv2.add(new_frame, f)
+        target = np.array([point_map[tuple(p.astype(np.int32))] for p in triangle]).astype(np.int32)
+        M = cv2.getAffineTransform(triangle, target.astype(np.float32))
+        f = cv2.warpAffine(frame, M, (f_w, f_h))
+        mask = np.zeros((f_h, f_w), dtype=np.uint8)
+        cv2.fillConvexPoly(mask, target, 255)
+        cv2.fillConvexPoly(new_frame, target, 0)
+        cv2.add(new_frame, f, dst=new_frame, mask=mask)
+        #f = _mask_triangle_only(f, target.astype(np.int32))
+        #new_frame = cv2.addWeighted(new_frame, f)
 
     return new_frame
 
