@@ -14,8 +14,9 @@ def draw_face_box(frame, face_location):
 
 
 class Application:
-    def __init__(self, camera_number):
+    def __init__(self, camera_number, rotate):
         self.camera_number = camera_number
+        self.rotate = rotate
         self.scaling_factor = 4
         self.preview_window = "preview"
         self.genimage_window = "genimage"
@@ -76,8 +77,9 @@ class Application:
             # get a single frame
             rval, frame = self.video_capture.read()
 
-            frame = cv2.transpose(frame)
-            frame = cv2.flip(frame, flipCode=1)
+            if self.rotate:
+                frame = cv2.transpose(frame)
+                frame = cv2.flip(frame, flipCode=1)
 
             # get the faces
             if process_this_frame:
@@ -103,7 +105,14 @@ def create_parser():
         "--camera_input",
         default=1,
         type=int,
-        help="Which camera to use.")
+        help="Which camera to use."
+    )
+    parser.add_argument(
+        "--rotate",
+        action='store_true',
+        default=False,
+        help="Whether to rotate the image."
+    )
 
     return parser
 
@@ -111,7 +120,8 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    a = Application(args.camera_input)
+    a = Application(args.camera_input,
+                    args.rotate)
     init_successful = a.init()
     if not init_successful:
         print("Error in init.")
