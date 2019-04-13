@@ -15,9 +15,10 @@ def draw_face_box(frame, face_location):
 
 
 class Application:
-    def __init__(self, camera_number, rotate):
+    def __init__(self, camera_number, rotate, fullscreen):
         self.camera_number = camera_number
         self.rotate = rotate
+        self.fullscreen = fullscreen
         self.scaling_factor = 4
         self.preview_window = "preview"
         self.genimage_window = "genimage"
@@ -29,6 +30,8 @@ class Application:
         # initialize window
         cv2.namedWindow(self.preview_window)
         cv2.namedWindow(self.genimage_window)
+        if self.fullscreen:
+            cv2.setWindowProperty(self.genimage_window, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
         # get webcam
         self.video_capture = cv2.VideoCapture(self.camera_number)
@@ -114,6 +117,12 @@ def create_parser():
         default=False,
         help="Whether to rotate the image."
     )
+    parser.add_argument(
+        "--fullscreen",
+        action='store_true',
+        default=False,
+        help="Whether to display the generated image fullscreen."
+    )
 
     return parser
 
@@ -122,7 +131,8 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     a = Application(args.camera_input,
-                    args.rotate)
+                    args.rotate,
+                    args.fullscreen)
     init_successful = a.init()
     if not init_successful:
         print("Error in init.")
