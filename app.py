@@ -4,6 +4,7 @@ import cv2
 import argparse
 from portrait import PortraitGen
 from util import scale_face_locations, scale_frame
+import time
 
 
 def draw_face_box(frame, face_location):
@@ -22,7 +23,7 @@ class Application:
         self.genimage_window = "genimage"
         self.video_capture = None
         self.collected_frames = []
-        self.pg = PortraitGen()
+        self.pg = PortraitGen(5)
 
     def init(self):
         # initialize window

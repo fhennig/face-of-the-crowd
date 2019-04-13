@@ -53,7 +53,6 @@ def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):
     return triangle_mapping
 
 
-
 def align_face(frame, face_landmarks, lm_targets):
     """Takes a frame and face_landmarks and centers the image and warps
     it.  Returns a frame again, same size as input.
@@ -77,7 +76,8 @@ def align_face(frame, face_landmarks, lm_targets):
 
 class PortraitGen:
 
-    def __init__(self):
+    def __init__(self, stack_size):
+        self.stack_size = stack_size
         self.recognized_frames = []
         self.target_landmarks = None
         self.portrait_frame = None
@@ -111,6 +111,7 @@ class PortraitGen:
         if len(recognized_frames) == 0:
             return False
         self.recognized_frames += recognized_frames
+        self.recognized_frames = self.recognized_frames[- self.stack_size:]
         self._update_target_landmarks()
         self._update_frame()
         return True
