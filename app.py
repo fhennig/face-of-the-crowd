@@ -15,7 +15,7 @@ def draw_face_box(frame, face_location):
 
 
 class Application:
-    def __init__(self, camera_number, rotate, fullscreen):
+    def __init__(self, camera_number, rotate, fullscreen, pool_size):
         self.camera_number = camera_number
         self.rotate = rotate
         self.fullscreen = fullscreen
@@ -24,7 +24,7 @@ class Application:
         self.genimage_window = "genimage"
         self.video_capture = None
         self.collected_frames = []
-        self.pg = PortraitGen(5)
+        self.pg = PortraitGen(5, pool_size)
 
     def init(self):
         # initialize window
@@ -123,6 +123,12 @@ def create_parser():
         default=False,
         help="Whether to display the generated image fullscreen."
     )
+    parser.add_argument(
+        "--pool_size",
+        default=4,
+        type=int,
+        help="The number of parallel processes to use."
+    )
 
     return parser
 
@@ -130,9 +136,11 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
+    print(args)
     a = Application(args.camera_input,
                     args.rotate,
-                    args.fullscreen)
+                    args.fullscreen,
+                    args.pool_size)
     init_successful = a.init()
     if not init_successful:
         print("Error in init.")

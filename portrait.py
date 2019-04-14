@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from multiprocessing import Pool
 
 
 def generate_edge_points(f_width, f_height):
@@ -74,10 +75,16 @@ def align_face(frame, face_landmarks, lm_targets):
     return new_frame
 
 
+def _align_face(args):
+    """Helper function for parallelization"""
+    return align_face(*args)
+
+
 class PortraitGen:
 
-    def __init__(self, stack_size):
+    def __init__(self, stack_size, pool_size):
         self.stack_size = stack_size
+        self.pool_size = pool_size
         self.recognized_frames = []
         self.target_landmarks = None
         self.portrait_frame = None
@@ -85,11 +92,9 @@ class PortraitGen:
     def _update_frame(self):
         """Updates the portrait_frame, the generated image."""
         assert len(self.recognized_frames) > 0
-        collected_frames = []
-        for r_frame in self.recognized_frames:
-            p_frame = align_face(r_frame.frame, r_frame.face_landmarks, self.target_landmarks)
-            collected_frames.append(p_frame)
-
+        with Pool(self.pool_size) as p:
+            l = [(r_f.frame, r_f.face_landmarks, self.target_landmarks) for r_f in self.recognized_frames]
+            collected_frames = p.map(_align_face, l)
         f = np.zeros(shape=collected_frames[0].shape,
                      dtype=np.float64)
         for pframe in collected_frames:
