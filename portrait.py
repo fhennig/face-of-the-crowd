@@ -92,14 +92,15 @@ class PortraitGen:
     def _update_frame(self):
         """Updates the portrait_frame, the generated image."""
         assert len(self.recognized_frames) > 0
+        # align the images to the target landmarks
         with Pool(self.pool_size) as p:
             l = [(r_f.frame, r_f.face_landmarks, self.target_landmarks) for r_f in self.recognized_frames]
             collected_frames = p.map(_align_face, l)
+        # overlay the aligned images
         f = np.zeros(shape=collected_frames[0].shape,
-                     dtype=np.float64)
+                     dtype=np.uint8)
         for pframe in collected_frames:
-            transparent_image = (pframe / 255) * (1 / len(collected_frames))
-            f = cv2.add(f, transparent_image)
+            cv2.addWeighted(f, 1, pframe, (1 / len(collected_frames)), 0, f)
         self.portrait_frame = f
 
     def _update_target_landmarks(self):
