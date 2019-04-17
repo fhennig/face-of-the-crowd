@@ -16,6 +16,16 @@ def draw_face_box(frame, face_location):
     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
 
+def my_get_frame(video_capture, rotate):
+    # get a single frame
+    rval, frame = video_capture.read()
+
+    if rotate:
+        frame = cv2.transpose(frame)
+        frame = cv2.flip(frame, flipCode=1)
+
+    return rval, frame
+
 class Application:
     def __init__(self, camera_number, rotate, fullscreen, pool_size):
         self.camera_number = camera_number
@@ -24,10 +34,12 @@ class Application:
         self.scaling_factor = 4
         self.preview_window = "preview"
         self.genimage_window = "genimage"
+        self.genimage = None
         self.video_capture = None
         self.collected_frames = []
         self.pg = PortraitGen(5, pool_size)
         self.frame_checker = FrameChecker()
+        self.debug_scaling = 1/2
 
     def init(self):
         # initialize window
@@ -41,13 +53,17 @@ class Application:
         self.video_capture.set(3, 1920)
         self.video_capture.set(4, 1080)
 
+        rval = False
+        frame = None
+
         if self.video_capture.isOpened():  # try to get the first frame
-            rval, frame = self.video_capture.read()
-        else:
-            rval = False
-        if not rval:
-            return False
-        return True
+            rval, frame = my_get_frame(self.video_capture, self.rotate)
+
+        if frame is not None:
+            self.genimage = scale_frame(frame, self.debug_scaling)
+            cv2.imshow(self.genimage_window, self.genimage)
+
+        return rval
 
     def teardown(self):
         cv2.destroyWindow(self.preview_window)
@@ -61,20 +77,22 @@ class Application:
         changed = self.pg.update(recognized_frames)
         if not changed:
             return
-        f = scale_frame(self.pg.portrait_frame, 1 / 2)
+        f = scale_frame(self.pg.portrait_frame, self.debug_scaling)
+        self.genimage = f
         cv2.imshow(self.genimage_window, f)
 
     def update_preview(self, frame, face_locations):
-        factor = 1 / 2
-        frame = scale_frame(frame, factor)
+        frame = scale_frame(frame, self.debug_scaling)
         if face_locations:
-            face_locations = scale_face_locations(face_locations, factor)
+            face_locations = scale_face_locations(face_locations, self.debug_scaling)
             # draw boxes
             for face_location in face_locations:
                 draw_face_box(frame, face_location)
+                draw_face_box(self.genimage, face_location)
 
         # Display the resulting image
         cv2.imshow(self.preview_window, frame)
+        cv2.imshow(self.genimage_window, self.genimage)
 
     def start(self):
         recognized_frames = []
@@ -83,11 +101,7 @@ class Application:
         rval = True
         while rval:
             # get a single frame
-            rval, frame = self.video_capture.read()
-
-            if self.rotate:
-                frame = cv2.transpose(frame)
-                frame = cv2.flip(frame, flipCode=1)
+            rval, frame = my_get_frame(self.video_capture, self.rotate)
 
             # get the faces
             if process_this_frame:
