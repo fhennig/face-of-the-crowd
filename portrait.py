@@ -114,7 +114,7 @@ class PortraitGen:
 
     def update(self, recognized_frames):
         """Updates the generated image, the merge of all the faces."""
-        if len(recognized_frames) == 0:
+        if not recognized_frames:
             return False
         self.recognized_frames += recognized_frames
         self.recognized_frames = self.recognized_frames[- self.stack_size:]

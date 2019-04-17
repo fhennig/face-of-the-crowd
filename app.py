@@ -2,6 +2,8 @@
 import face_recog
 import cv2
 import argparse
+
+from frame_checker import FrameChecker
 from portrait import PortraitGen
 from util import scale_face_locations, scale_frame
 import time
@@ -25,6 +27,7 @@ class Application:
         self.video_capture = None
         self.collected_frames = []
         self.pg = PortraitGen(5, pool_size)
+        self.frame_checker = FrameChecker()
 
     def init(self):
         # initialize window
@@ -54,6 +57,7 @@ class Application:
 
     def update_genimage(self, recognized_frames):
         """Updates the generated image, the merge of all the faces."""
+        recognized_frames = self.frame_checker.filter_frames(recognized_frames)
         changed = self.pg.update(recognized_frames)
         if not changed:
             return
