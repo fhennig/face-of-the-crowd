@@ -14,6 +14,7 @@ def _face_landmarks_to_list(face_landmarks):
     return l
 
 
+
 def get_faces(frame, scaling_factor):
     """Takes a frame, recognizes the faces and returns a list of
     RecognizedFrame, one for each face.  Can return an empty list."""
@@ -46,5 +47,11 @@ def get_faces(frame, scaling_factor):
 class RecognizedFrame:
     def __init__(self, frame, face_loc, face_landmarks):
         self.frame = frame
-        self.face_loc = face_loc
+        self.face_location = face_loc
         self.face_landmarks = face_landmarks
+
+    def left_eye(self):
+        return self.face_landmarks[36]
+
+    def right_eye(self):
+        return self.face_landmarks[45]

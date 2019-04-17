@@ -1,4 +1,19 @@
 import cv2
+import numpy as np
+
+
+def scale_face_location(face_location, factor):
+    top, right, bottom, left = face_location
+    return (int(top * factor),
+            int(right * factor),
+            int(bottom * factor),
+            int(left * factor))
+
+
+def scale_point(point, factor):
+    x, y = point
+    return (int(x * factor),
+            int(y * factor))
 
 
 def scale_face_locations(face_locations, factor):

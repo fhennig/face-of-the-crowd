@@ -7,7 +7,7 @@ class FrameChecker:
         self.margins = margins
 
     def check(self, recognized_frame):
-        loc = recognized_frame.face_loc
+        loc = recognized_frame.face_locations
         return True
 
     def filter_frames(self, recognized_frames):

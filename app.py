@@ -2,10 +2,11 @@
 import face_recog
 import cv2
 import argparse
+import numpy as np
 
 from frame_checker import FrameChecker
 from portrait import PortraitGen
-from util import scale_face_locations, scale_frame
+from util import scale_face_location, scale_frame, scale_point
 import time
 
 
@@ -14,6 +15,14 @@ def draw_face_box(frame, face_location):
     top, right, bottom, left = face_location
     # Draw a box around the face
     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+
+
+def draw_eye_line(frame, recognized_frame, factor):
+    cv2.line(frame,
+             scale_point(recognized_frame.left_eye(), factor),
+             scale_point(recognized_frame.right_eye(), factor),
+             (0, 255, 100),
+             thickness=2)
 
 
 def my_get_frame(video_capture, rotate):
@@ -40,6 +49,7 @@ class Application:
         self.pg = PortraitGen(5, pool_size)
         self.frame_checker = FrameChecker()
         self.debug_scaling = 1/2
+        self.current_recognized_frames = []
 
     def init(self):
         # initialize window
@@ -71,9 +81,9 @@ class Application:
 
         self.video_capture.release()
 
-    def update_genimage(self, recognized_frames):
+    def update_genimage(self):
         """Updates the generated image, the merge of all the faces."""
-        recognized_frames = self.frame_checker.filter_frames(recognized_frames)
+        recognized_frames = self.frame_checker.filter_frames(self.current_recognized_frames)
         changed = self.pg.update(recognized_frames)
         if not changed:
             return
@@ -81,21 +91,23 @@ class Application:
         self.genimage = f
         cv2.imshow(self.genimage_window, f)
 
-    def update_preview(self, frame, face_locations):
+    def update_preview(self, frame):
         frame = scale_frame(frame, self.debug_scaling)
-        if face_locations:
-            face_locations = scale_face_locations(face_locations, self.debug_scaling)
+        new_preview = frame
+        new_genimage = np.copy(self.genimage)
+        if self.current_recognized_frames:
             # draw boxes
-            for face_location in face_locations:
-                draw_face_box(frame, face_location)
-                draw_face_box(self.genimage, face_location)
+            for rf in self.current_recognized_frames:
+                face_location = scale_face_location(rf.face_location, self.debug_scaling)
+                draw_face_box(new_preview, face_location)
+                draw_eye_line(new_preview, rf, self.debug_scaling)
+                draw_eye_line(new_genimage, rf, self.debug_scaling)
 
         # Display the resulting image
-        cv2.imshow(self.preview_window, frame)
-        cv2.imshow(self.genimage_window, self.genimage)
+        cv2.imshow(self.preview_window, new_preview)
+        cv2.imshow(self.genimage_window, new_genimage)
 
     def start(self):
-        recognized_frames = []
         process_this_frame = True
 
         rval = True
@@ -105,7 +117,7 @@ class Application:
 
             # get the faces
             if process_this_frame:
-                recognized_frames = face_recog.get_faces(frame, self.scaling_factor)
+                self.current_recognized_frames = face_recog.get_faces(frame, self.scaling_factor)
 
             process_this_frame = not process_this_frame
 
@@ -114,10 +126,9 @@ class Application:
             if key == 113:  # exit on q
                 break
             if key == 112:  # take screenshot on p
-                self.update_genimage(recognized_frames)
+                self.update_genimage()
 
-            f_locs = [rf.face_loc for rf in recognized_frames]
-            self.update_preview(frame, f_locs)
+            self.update_preview(frame)
 
 
 def create_parser():
