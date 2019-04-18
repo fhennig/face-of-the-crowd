@@ -4,7 +4,7 @@ import cv2
 import argparse
 import numpy as np
 
-from frame_checker import FrameChecker
+from frame_checker import CheckedFrame
 from portrait import PortraitGen
 from util import scale_face_location, scale_frame, scale_point
 import time
@@ -17,11 +17,55 @@ def draw_face_box(frame, face_location):
     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
 
-def draw_eye_line(frame, recognized_frame, factor):
+# good line length between 270 and 380 -> 325; 55 acceptable margin
+# good centre_x = 540 +- 60
+# height diff should be 0
+
+
+def error_fn(left_eye, right_eye):
+    l_a = np.array(left_eye)
+    r_a = np.array(right_eye)
+    d = np.linalg.norm(l_a - r_a)
+    h = ((l_a + r_a) / 2)[1]
+    e = 0
+    e += np.abs(325 - d)
+    heigth_diff = np.abs(l_a[1] - r_a[1])
+    e += heigth_diff
+    return e
+
+
+def draw_checked_frame(frame, checked_frame, factor):
+    green = (0, 255, 0)
+    red = (0, 0, 255)
+
+    eye_line_color = green if checked_frame.width_ok else red
     cv2.line(frame,
-             scale_point(recognized_frame.left_eye(), factor),
-             scale_point(recognized_frame.right_eye(), factor),
-             (0, 255, 100),
+             scale_point(checked_frame.left_eye, factor),
+             scale_point(checked_frame.right_eye, factor),
+             eye_line_color,
+             thickness=2)
+
+    centre_line_color = green if checked_frame.centre_ok else red
+    cv2.line(frame,
+             scale_point(checked_frame.centre, factor),
+             scale_point(checked_frame.centre_target, factor),
+             centre_line_color,
+             thickness=4)
+
+    height_line_color = green if checked_frame.height_ok else red
+    cv2.line(frame,
+             scale_point(checked_frame.h_min_point, factor),
+             scale_point(checked_frame.h_max_point, factor),
+             height_line_color,
+             thickness=2)
+
+
+def draw_eye_line(frame, recognized_frame, factor):
+    e = error_fn(recognized_frame.left_eye, recognized_frame.right_eye)
+    cv2.line(frame,
+             scale_point(recognized_frame.left_eye, factor),
+             scale_point(recognized_frame.right_eye, factor),
+             (0, 255 - e, e),
              thickness=2)
 
 
@@ -47,7 +91,6 @@ class Application:
         self.video_capture = None
         self.collected_frames = []
         self.pg = PortraitGen(5, pool_size)
-        self.frame_checker = FrameChecker()
         self.debug_scaling = 1/2
         self.current_recognized_frames = []
 
@@ -98,10 +141,12 @@ class Application:
         if self.current_recognized_frames:
             # draw boxes
             for rf in self.current_recognized_frames:
+                checked_frame = CheckedFrame(rf)
                 face_location = scale_face_location(rf.face_location, self.debug_scaling)
                 draw_face_box(new_preview, face_location)
                 draw_eye_line(new_preview, rf, self.debug_scaling)
                 draw_eye_line(new_genimage, rf, self.debug_scaling)
+                draw_checked_frame(new_genimage, checked_frame, self.debug_scaling)
 
         # Display the resulting image
         cv2.imshow(self.preview_window, new_preview)

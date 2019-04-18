@@ -49,9 +49,5 @@ class RecognizedFrame:
         self.frame = frame
         self.face_location = face_loc
         self.face_landmarks = face_landmarks
-
-    def left_eye(self):
-        return self.face_landmarks[36]
-
-    def right_eye(self):
-        return self.face_landmarks[45]
+        self.left_eye = self.face_landmarks[36]
+        self.right_eye = self.face_landmarks[45]
