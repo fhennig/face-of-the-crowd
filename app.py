@@ -5,7 +5,7 @@ import cv2
 import argparse
 import numpy as np
 
-from frame_checker import CheckedFrame
+from frame_checker import FrameChecker
 from portrait import PortraitGen
 from util import scale_frame, scale_point
 
@@ -62,6 +62,7 @@ class Application:
         self.debug_scaling = 1/2
         self.current_checked_frames = []
         self.checkpoint_time = datetime.datetime.now()
+        self.frame_checker = None
 
     def init(self):
         # initialize window
@@ -84,6 +85,11 @@ class Application:
         if frame is not None:
             self.genimage = scale_frame(frame, self.debug_scaling)
             cv2.imshow(self.genimage_window, self.genimage)
+
+        if self.rotate:
+            self.frame_checker = FrameChecker(1080, 1920)
+        else:
+            self.frame_checker = FrameChecker(1920, 1080)
 
         return rval
 
@@ -138,7 +144,7 @@ class Application:
             # get the faces
             if process_this_frame:
                 rfs = face_recog.get_faces(frame, self.scaling_factor)
-                self.current_checked_frames = [CheckedFrame(rf) for rf in rfs]
+                self.current_checked_frames = [self.frame_checker.check(rf) for rf in rfs]
 
             process_this_frame = not process_this_frame
 
