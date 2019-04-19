@@ -7,32 +7,7 @@ import numpy as np
 
 from frame_checker import CheckedFrame
 from portrait import PortraitGen
-from util import scale_face_location, scale_frame, scale_point
-import time
-
-
-def draw_face_box(frame, face_location):
-    # Display the results
-    top, right, bottom, left = face_location
-    # Draw a box around the face
-    cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-
-
-# good line length between 270 and 380 -> 325; 55 acceptable margin
-# good centre_x = 540 +- 60
-# height diff should be 0
-
-
-def error_fn(left_eye, right_eye):
-    l_a = np.array(left_eye)
-    r_a = np.array(right_eye)
-    d = np.linalg.norm(l_a - r_a)
-    h = ((l_a + r_a) / 2)[1]
-    e = 0
-    e += np.abs(325 - d)
-    heigth_diff = np.abs(l_a[1] - r_a[1])
-    e += heigth_diff
-    return e
+from util import scale_frame, scale_point
 
 
 def draw_checked_frame(frame, checked_frame, factor):
@@ -61,15 +36,6 @@ def draw_checked_frame(frame, checked_frame, factor):
              thickness=2)
 
 
-def draw_eye_line(frame, recognized_frame, factor):
-    e = error_fn(recognized_frame.left_eye, recognized_frame.right_eye)
-    cv2.line(frame,
-             scale_point(recognized_frame.left_eye, factor),
-             scale_point(recognized_frame.right_eye, factor),
-             (0, 255 - e, e),
-             thickness=2)
-
-
 def my_get_frame(video_capture, rotate):
     # get a single frame
     rval, frame = video_capture.read()
@@ -79,6 +45,7 @@ def my_get_frame(video_capture, rotate):
         frame = cv2.flip(frame, flipCode=1)
 
     return rval, frame
+
 
 class Application:
     def __init__(self, camera_number, rotate, fullscreen, pool_size):
