@@ -8,7 +8,7 @@ class FrameChecker:
         self.line_width_margin = 55
         self.centre = int(frame_width / 2)
         self.centre_margin = 30
-        self.max_height = 30
+        self.max_height = 100
 
     def check(self, recognized_frame):
         return CheckedFrame(self.line_width,

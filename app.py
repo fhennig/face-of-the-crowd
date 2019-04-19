@@ -52,6 +52,9 @@ class Application:
         self.camera_number = camera_number
         self.rotate = rotate
         self.fullscreen = fullscreen
+        self.debug_scaling = 1/2
+        if fullscreen:
+            self.debug_scaling = 1
         self.scaling_factor = 4
         self.preview_window = "preview"
         self.genimage_window = "genimage"
@@ -59,9 +62,8 @@ class Application:
         self.video_capture = None
         self.collected_frames = []
         self.pg = PortraitGen(5, pool_size)
-        self.debug_scaling = 1/2
         self.current_checked_frames = []
-        self.checkpoint_time = datetime.datetime.now()
+        self.checkpoint_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
         self.frame_checker = None
 
     def init(self):
@@ -121,17 +123,16 @@ class Application:
         frame = scale_frame(frame, self.debug_scaling)
         new_preview = frame
         new_genimage = np.copy(self.genimage)
-        if self.current_checked_frames:
-            # draw face lines
-            for cf in self.current_checked_frames:
-                draw_checked_frame(new_preview, cf, self.debug_scaling)
-                draw_checked_frame(new_genimage, cf, self.debug_scaling)
-
-            self.portrait_update(self.current_checked_frames)
+        # draw face lines
+        for cf in self.current_checked_frames:
+            draw_checked_frame(new_preview, cf, self.debug_scaling)
+            draw_checked_frame(new_genimage, cf, self.debug_scaling)
 
         # Display the resulting image
         cv2.imshow(self.preview_window, new_preview)
         cv2.imshow(self.genimage_window, new_genimage)
+
+        self.portrait_update(self.current_checked_frames)
 
     def start(self):
         process_this_frame = True
