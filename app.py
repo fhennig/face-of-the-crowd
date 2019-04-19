@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+import datetime
 import face_recog
 import cv2
 import argparse
@@ -92,7 +93,8 @@ class Application:
         self.collected_frames = []
         self.pg = PortraitGen(5, pool_size)
         self.debug_scaling = 1/2
-        self.current_recognized_frames = []
+        self.current_checked_frames = []
+        self.checkpoint_time = datetime.datetime.now()
 
     def init(self):
         # initialize window
@@ -124,29 +126,35 @@ class Application:
 
         self.video_capture.release()
 
-    def update_genimage(self):
-        """Updates the generated image, the merge of all the faces."""
-        recognized_frames = self.frame_checker.filter_frames(self.current_recognized_frames)
-        changed = self.pg.update(recognized_frames)
-        if not changed:
-            return
-        f = scale_frame(self.pg.portrait_frame, self.debug_scaling)
-        self.genimage = f
-        cv2.imshow(self.genimage_window, f)
+    def portrait_update(self, checked_frames):
+        current_time = datetime.datetime.now()
+        if current_time < self.checkpoint_time:
+            print("too early")
+            return  # too early for an update
+        # update portrait
+        ok_frames = [cf.recognized_frame
+                     for cf in checked_frames
+                     if cf.all_ok]
+        changed = self.pg.update(ok_frames)
+        if changed:
+            print("Updated")
+            f = scale_frame(self.pg.portrait_frame, self.debug_scaling)
+            self.genimage = f
+            cv2.imshow(self.genimage_window, f)
+            self.checkpoint_time = current_time + datetime.timedelta(seconds=10)
 
-    def update_preview(self, frame):
+
+    def loop_update(self, frame):
         frame = scale_frame(frame, self.debug_scaling)
         new_preview = frame
         new_genimage = np.copy(self.genimage)
-        if self.current_recognized_frames:
-            # draw boxes
-            for rf in self.current_recognized_frames:
-                checked_frame = CheckedFrame(rf)
-                face_location = scale_face_location(rf.face_location, self.debug_scaling)
-                draw_face_box(new_preview, face_location)
-                draw_eye_line(new_preview, rf, self.debug_scaling)
-                draw_eye_line(new_genimage, rf, self.debug_scaling)
-                draw_checked_frame(new_genimage, checked_frame, self.debug_scaling)
+        if self.current_checked_frames:
+            # draw face lines
+            for cf in self.current_checked_frames:
+                draw_checked_frame(new_preview, cf, self.debug_scaling)
+                draw_checked_frame(new_genimage, cf, self.debug_scaling)
+
+            self.portrait_update(self.current_checked_frames)
 
         # Display the resulting image
         cv2.imshow(self.preview_window, new_preview)
@@ -162,7 +170,8 @@ class Application:
 
             # get the faces
             if process_this_frame:
-                self.current_recognized_frames = face_recog.get_faces(frame, self.scaling_factor)
+                rfs = face_recog.get_faces(frame, self.scaling_factor)
+                self.current_checked_frames = [CheckedFrame(rf) for rf in rfs]
 
             process_this_frame = not process_this_frame
 
@@ -170,10 +179,8 @@ class Application:
             key = cv2.waitKey(20)
             if key == 113:  # exit on q
                 break
-            if key == 112:  # take screenshot on p
-                self.update_genimage()
 
-            self.update_preview(frame)
+            self.loop_update(frame)
 
 
 def create_parser():

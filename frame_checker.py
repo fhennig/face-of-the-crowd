@@ -1,24 +1,13 @@
 import numpy as np
 
 
-class FrameChecker:
-
-    def __init__(self, margins=(0.35, 0.15, 0.2, 0.15)):
-        self.margins = margins
-
-    def check(self, recognized_frame):
-        loc = recognized_frame.face_locations
-        return True
-
-    def filter_frames(self, recognized_frames):
-        for rf in recognized_frames:
-            if self.check(rf):
-                yield rf
-
-
 class CheckedFrame():
 
     def __init__(self, recognized_frame):
+        """Takes a recognized frame and analyzes the position of the face to see
+        if it is the proper size and in the right position to be used for the portrait."""
+        # recognized frame
+        self.recognized_frame = recognized_frame
         # left eye, right eye
         self.left_eye = recognized_frame.left_eye
         self.right_eye = recognized_frame.right_eye
@@ -43,3 +32,6 @@ class CheckedFrame():
         self.h_min_point = (x, h_min)
         self.h_max_point = (x, h_max)
         self.height_ok = h_max - h_min < 50
+
+        # all
+        self.all_ok = self.width_ok and self.centre_ok and self.height_ok
