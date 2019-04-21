@@ -25,6 +25,11 @@ def draw_triangle(frame, triangle):
     cv2.line(frame, pt3, pt1, (0, 255, 0), 4, 8, 0)
 
 
+def is_in_frame(frame_w, frame_h, lm):
+    """Returns whether a given landmarks is within the frame boundaries or not."""
+    return lm[0] < frame_w and lm[1] < frame_h
+
+
 def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):
     """Takes a list of face landmarks and a corresponding list of targets.
     Returns a list of tuples of triangles [(src_triangle, target_triangle)].
@@ -42,8 +47,8 @@ def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):
     subdiv = cv2.Subdiv2D(rect)
     print("rectangle: {}".format(rect))
     for lm in face_landmarks:
-        print("Landmark: {}".format(lm))
-        subdiv.insert(lm)
+        if is_in_frame(frame_w, frame_h, lm):
+            subdiv.insert(lm)
     for p in edge_points:
         subdiv.insert(p)
 
