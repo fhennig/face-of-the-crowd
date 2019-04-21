@@ -45,7 +45,6 @@ def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):
     for ep in edge_points:
         point_map[ep] = ep
     subdiv = cv2.Subdiv2D(rect)
-    print("rectangle: {}".format(rect))
     for lm in face_landmarks:
         if is_in_frame(frame_w, frame_h, lm):
             subdiv.insert(lm)

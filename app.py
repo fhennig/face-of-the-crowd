@@ -191,6 +191,23 @@ def create_parser():
         type=int,
         help="The number of parallel processes to use."
     )
+    parser.add_argument(
+        "--remote",
+        action='store_true',
+        default=False,
+        help="Whether to use a remote backend or run everything locally."
+    )
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="The remote host IP adress."
+    )
+    parser.add_argument(
+        "--port",
+        default=5000,
+        type=int,
+        help="The remote port."
+    )
 
     return parser
 
@@ -199,8 +216,10 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     print(args)
-    # processing_backend = ProcessingBackend('127.0.0.1', 5000)
-    processing_backend = PortraitGen(5, args.pool_size)
+    if args.remote:
+        processing_backend = ProcessingBackend(args.host, args.port)
+    else:
+        processing_backend = PortraitGen(5, args.pool_size)
     a = Application(args.camera_input,
                     args.rotate,
                     args.fullscreen,
