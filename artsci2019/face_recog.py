@@ -1,6 +1,6 @@
 import face_recognition
 import cv2
-from util import scale_face_landmarkss, scale_face_locations
+from artsci2019.util import scale_face_landmarkss, scale_face_locations
 
 
 def _face_landmarks_to_list(face_landmarks):

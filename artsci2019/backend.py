@@ -1,6 +1,6 @@
 from flask import Flask
 from flask import request
-from portrait import PortraitGen
+from artsci2019.portrait import PortraitGen
 import pickle
 
 
