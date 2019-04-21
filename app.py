@@ -49,7 +49,7 @@ def my_get_frame(video_capture, rotate):
 
 
 class Application:
-    def __init__(self, camera_number, rotate, fullscreen, pool_size):
+    def __init__(self, camera_number, rotate, fullscreen, processing_backend):
         self.camera_number = camera_number
         self.rotate = rotate
         self.fullscreen = fullscreen
@@ -62,8 +62,7 @@ class Application:
         self.genimage = None
         self.video_capture = None
         self.collected_frames = []
-        #self.pb = ProcessingBackend('127.0.0.1', 5000)
-        self.pb = PortraitGen(5, 4)
+        self.pb = processing_backend
         self.current_checked_frames = []
         self.checkpoint_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
         self.frame_checker = None
@@ -200,10 +199,12 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     print(args)
+    # processing_backend = ProcessingBackend('127.0.0.1', 5000)
+    processing_backend = PortraitGen(5, args.pool_size)
     a = Application(args.camera_input,
                     args.rotate,
                     args.fullscreen,
-                    args.pool_size)
+                    processing_backend)
     init_successful = a.init()
     if not init_successful:
         print("Error in init.")
