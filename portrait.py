@@ -40,7 +40,9 @@ def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):
     for ep in edge_points:
         point_map[ep] = ep
     subdiv = cv2.Subdiv2D(rect)
+    print("rectangle: {}".format(rect))
     for lm in face_landmarks:
+        print("Landmark: {}".format(lm))
         subdiv.insert(lm)
     for p in edge_points:
         subdiv.insert(p)
@@ -121,3 +123,6 @@ class PortraitGen:
         self._update_target_landmarks()
         self._update_frame()
         return True
+
+    def get_portrait(self):
+        return self.portrait_frame

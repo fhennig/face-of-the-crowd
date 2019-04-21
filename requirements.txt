@@ -2,3 +2,5 @@ opencv-python
 face_recognition
 argparse
 numpy
+flask
+requests

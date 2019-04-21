@@ -5,6 +5,7 @@ import cv2
 import argparse
 import numpy as np
 
+from backend_facade import ProcessingBackend
 from frame_checker import FrameChecker
 from portrait import PortraitGen
 from util import scale_frame, scale_point
@@ -61,7 +62,8 @@ class Application:
         self.genimage = None
         self.video_capture = None
         self.collected_frames = []
-        self.pg = PortraitGen(5, pool_size)
+        #self.pb = ProcessingBackend('127.0.0.1', 5000)
+        self.pb = PortraitGen(5, 4)
         self.current_checked_frames = []
         self.checkpoint_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
         self.frame_checker = None
@@ -110,10 +112,13 @@ class Application:
         ok_frames = [cf.recognized_frame
                      for cf in checked_frames
                      if cf.all_ok]
-        changed = self.pg.update(ok_frames)
+        changed = False
+        if ok_frames:
+            changed = self.pb.update(ok_frames)
         if changed:
             print("Updated")
-            f = scale_frame(self.pg.portrait_frame, self.debug_scaling)
+            portrait_frame = self.pb.get_portrait()
+            f = scale_frame(portrait_frame, self.debug_scaling)
             self.genimage = f
             cv2.imshow(self.genimage_window, f)
             self.checkpoint_time = current_time + datetime.timedelta(seconds=10)
