@@ -2,8 +2,6 @@
 import argparse
 
 from artsci2019.app import Application
-from artsci2019.portrait import PortraitGen
-from artsci2019.backend_facade import ProcessingBackend
 
 
 def create_parser():
@@ -20,6 +18,11 @@ def create_parser():
         default=4,
         type=int,
         help="The number of parallel processes to use."
+    )
+    parser.add_argument(
+        "--image_dir",
+        default="images",
+        help="The directory where the images should be saved."
     )
 
     subparsers = parser.add_subparsers(
@@ -50,7 +53,7 @@ def create_parser():
         "--remote",
         action='store_true',
         default=False,
-        help="Whether to use a remote backend or run everything locally."
+        help="Whether to use a remote rpc or run everything locally."
     )
     run.add_argument(
         "--host",
@@ -65,7 +68,7 @@ def create_parser():
     )
     run.set_defaults(func=run)
 
-    backend = subparsers.add_parser("backend")
+    backend = subparsers.add_parser("server")
     backend.set_defaults(func=backend)
 
     return parser
@@ -73,9 +76,11 @@ def create_parser():
 
 def run(args):
     if args.remote:
-        processing_backend = ProcessingBackend(args.host, args.port)
+        from artsci2019.rpc.client import RemoteBackend
+        processing_backend = RemoteBackend(args.host, args.port)
     else:
-        processing_backend = PortraitGen(5, args.pool_size)
+        from artsci2019.backend.backend import Backend
+        processing_backend = Backend(args.stack_size, args.pool_size, args.image_dir)
     a = Application(args.camera_input,
                     args.rotate,
                     args.fullscreen,
@@ -89,8 +94,8 @@ def run(args):
 
 
 def run_backend(args):
-    from artsci2019.backend import create_app
-    app = create_app(args.stack_size, args.pool_size)
+    from artsci2019.rpc.server import create_app
+    app = create_app(args.stack_size, args.pool_size, args.image_dir)
     app.run(debug=True)
 
 
@@ -100,7 +105,7 @@ def main():
     print(args)
     if args.subcommand == "run":
         run(args)
-    elif args.subcommand == "backend":
+    elif args.subcommand == "server":
         run_backend(args)
 
 

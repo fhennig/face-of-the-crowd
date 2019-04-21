@@ -5,9 +5,9 @@ class FrameChecker:
 
     def __init__(self, frame_width, frame_height):
         self.line_width = 325
-        self.line_width_margin = 55
+        self.line_width_margin = 70
         self.centre = int(frame_width / 2)
-        self.centre_margin = 40
+        self.centre_margin = 50
         self.max_height = 100
 
     def check(self, recognized_frame):
@@ -63,4 +63,4 @@ class CheckedFrame:
 
         # all
         self.total_score = (self.width_score * self.centre_score * self.height_score) ** 0.5
-        self.all_ok = self.total_score > 0.8
+        self.all_ok = self.total_score > 0.7

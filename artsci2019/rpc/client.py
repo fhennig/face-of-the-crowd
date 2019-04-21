@@ -3,7 +3,7 @@ import pickle
 import io
 
 
-class ProcessingBackend:
+class RemoteBackend:
 
     def __init__(self, host, port):
         """A wrapper for the RPC with the server"""
@@ -11,7 +11,7 @@ class ProcessingBackend:
         self.port = port
 
     def update(self, recognized_frames):
-        """Takes a list of recognized frames and adds them to the backend."""
+        """Takes a list of recognized frames and adds them to the rpc."""
         url = 'http://{}:{}/update'.format(self.host, self.port)
         bytesIO = io.BytesIO()
         pickle.dump(recognized_frames, bytesIO)
