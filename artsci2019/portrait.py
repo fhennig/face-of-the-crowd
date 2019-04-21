@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from multiprocessing import Pool
+from artsci2019.util import is_in_frame
 
 
 def generate_edge_points(f_width, f_height):
@@ -23,11 +24,6 @@ def draw_triangle(frame, triangle):
     cv2.line(frame, pt1, pt2, (0, 255, 0), 4, 8, 0)
     cv2.line(frame, pt2, pt3, (0, 255, 0), 4, 8, 0)
     cv2.line(frame, pt3, pt1, (0, 255, 0), 4, 8, 0)
-
-
-def is_in_frame(frame_w, frame_h, lm):
-    """Returns whether a given landmarks is within the frame boundaries or not."""
-    return lm[0] < frame_w and lm[1] < frame_h
 
 
 def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):

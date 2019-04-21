@@ -7,7 +7,7 @@ class FrameChecker:
         self.line_width = 325
         self.line_width_margin = 55
         self.centre = int(frame_width / 2)
-        self.centre_margin = 30
+        self.centre_margin = 40
         self.max_height = 100
 
     def check(self, recognized_frame):
@@ -40,6 +40,8 @@ class CheckedFrame:
         l_a = np.array(self.left_eye)
         r_a = np.array(self.right_eye)
         d = np.linalg.norm(l_a - r_a)
+        margin = np.abs(line_width - d)
+        self.width_score = (1 - min(margin / line_width_margin, 1))
         self.width_ok = np.abs(line_width - d) < line_width_margin
 
         # centre
@@ -47,6 +49,7 @@ class CheckedFrame:
         self.centre = (int(c[0]), int(c[1]))
         self.centre_target = (centre, self.centre[1])
         dist_to_centre = np.abs(c[0] - centre)
+        self.centre_score = (1 - min(dist_to_centre / centre_margin, 1))
         self.centre_ok = dist_to_centre < centre_margin
 
         # heigth
@@ -55,7 +58,9 @@ class CheckedFrame:
         x = int(c[0])
         self.h_min_point = (x, h_min)
         self.h_max_point = (x, h_max)
+        self.height_score = (1 - min(float(h_max - h_min) / max_height, 1))
         self.height_ok = h_max - h_min < max_height
 
         # all
-        self.all_ok = self.width_ok and self.centre_ok and self.height_ok
+        self.total_score = (self.width_score * self.centre_score * self.height_score) ** 0.5
+        self.all_ok = self.total_score > 0.8

@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 from artsci2019.frame_checker import FrameChecker
-from artsci2019.util import scale_frame, scale_point
+from artsci2019.util import scale_frame, scale_point, is_in_frame
 from artsci2019.face_recog import get_faces
 
 
@@ -31,6 +31,25 @@ def draw_checked_frame(frame, checked_frame, factor):
              scale_point(checked_frame.h_max_point, factor),
              height_line_color,
              thickness=2)
+
+
+def draw_triangles(frame, checked_frame, factor):
+    f_h, f_w, _ = checked_frame.recognized_frame.frame.shape
+    # prep delaunay
+    rect = (0, 0, f_w, f_h)
+    subdiv = cv2.Subdiv2D(rect)
+    for lm in checked_frame.recognized_frame.face_landmarks:
+        if is_in_frame(f_w, f_h, lm):
+            subdiv.insert(lm)
+    print("triangles: {}".format(len(subdiv.getTriangleList())))
+    for t in subdiv.getTriangleList():
+        t = np.reshape(t, (3, 2)).astype(np.int32)
+        pt1 = scale_point(tuple(t[0]), factor)
+        pt2 = scale_point(tuple(t[1]), factor)
+        pt3 = scale_point(tuple(t[2]), factor)
+        cv2.line(frame, pt1, pt2, (255, 255, 255), 1, 8, 0)
+        cv2.line(frame, pt2, pt3, (255, 255, 255), 1, 8, 0)
+        cv2.line(frame, pt3, pt1, (255, 255, 255), 1, 8, 0)
 
 
 def my_get_frame(video_capture, rotate):
@@ -115,25 +134,30 @@ class Application:
             portrait_frame = self.pb.get_portrait()
             f = scale_frame(portrait_frame, self.debug_scaling)
             self.genimage = f
-            cv2.imshow(self.genimage_window, f)
+            cv2.imshow(self.genimage_window, self.genimage)
             self.checkpoint_time = current_time + datetime.timedelta(seconds=10)
         return changed
 
     def loop_update(self, frame):
         frame = scale_frame(frame, self.debug_scaling)
         new_preview = frame
-        new_genimage = np.copy(self.genimage)
+        new_genimage = self.genimage
 
         current_time = datetime.datetime.now()
-        if current_time > self.checkpoint_time:
+        if current_time > self.checkpoint_time and self.current_checked_frames:
             # draw face lines
+            score = max([cf.total_score for cf in self.current_checked_frames])
             for cf in self.current_checked_frames:
-                draw_checked_frame(new_preview, cf, self.debug_scaling)
-                draw_checked_frame(new_genimage, cf, self.debug_scaling)
+                print("Score: {}".format(cf.total_score))
+            new_genimage = cv2.addWeighted(self.genimage, 1 - score, frame, score, 0)
+            if score > 0.8:
+                print("YO")
+                draw_triangles(new_genimage, self.current_checked_frames[0], self.debug_scaling)
 
         # Display the resulting image
         cv2.imshow(self.preview_window, new_preview)
         cv2.imshow(self.genimage_window, new_genimage)
+        cv2.waitKey(20)
 
         changed = self.portrait_update(self.current_checked_frames)
 
@@ -152,9 +176,10 @@ class Application:
 
             process_this_frame = not process_this_frame
 
+            self.loop_update(frame)
+
             # exit on ESC
             key = cv2.waitKey(20)
             if key == 113:  # exit on q
                 break
 
-            self.loop_update(frame)

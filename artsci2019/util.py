@@ -38,3 +38,8 @@ def scale_frame(frame, factor):
     new_w = int(width * factor)
     frame = cv2.resize(frame, (new_w, new_h))
     return frame
+
+
+def is_in_frame(frame_w, frame_h, lm):
+    """Returns whether a given landmarks is within the frame boundaries or not."""
+    return lm[0] < frame_w and lm[1] < frame_h
