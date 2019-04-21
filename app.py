@@ -11,8 +11,8 @@ from util import scale_frame, scale_point
 
 
 def draw_checked_frame(frame, checked_frame, factor):
-    green = (0, 255, 0)
-    red = (0, 0, 255)
+    green = (100, 255, 100)
+    red = (100, 100, 255)
 
     eye_line_color = green if checked_frame.width_ok else red
     cv2.line(frame,
@@ -117,22 +117,25 @@ class Application:
             self.genimage = f
             cv2.imshow(self.genimage_window, f)
             self.checkpoint_time = current_time + datetime.timedelta(seconds=10)
-
+        return changed
 
     def loop_update(self, frame):
         frame = scale_frame(frame, self.debug_scaling)
         new_preview = frame
         new_genimage = np.copy(self.genimage)
-        # draw face lines
-        for cf in self.current_checked_frames:
-            draw_checked_frame(new_preview, cf, self.debug_scaling)
-            draw_checked_frame(new_genimage, cf, self.debug_scaling)
+
+        current_time = datetime.datetime.now()
+        if current_time > self.checkpoint_time:
+            # draw face lines
+            for cf in self.current_checked_frames:
+                draw_checked_frame(new_preview, cf, self.debug_scaling)
+                draw_checked_frame(new_genimage, cf, self.debug_scaling)
 
         # Display the resulting image
         cv2.imshow(self.preview_window, new_preview)
         cv2.imshow(self.genimage_window, new_genimage)
 
-        self.portrait_update(self.current_checked_frames)
+        changed = self.portrait_update(self.current_checked_frames)
 
     def start(self):
         process_this_frame = True
