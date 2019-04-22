@@ -74,6 +74,32 @@ def create_parser():
     return parser
 
 
+def init_logging():
+    import logging.config
+    logging.config.dictConfig({
+        'version': 1,
+        'formatters': {
+            'standard': {
+                'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+            }
+        },
+        'handlers': {
+            'default': {
+                'formatter': 'standard',
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://sys.stderr',
+            }
+        },
+        'loggers': {
+            '': {  # root logger
+                'handlers': ['default'],
+                'level': 'INFO',
+                'propagate': True
+            }
+        }
+    })
+
+
 def run(args):
     if args.remote:
         from artsci2019.rpc.client import RemoteBackend
@@ -103,6 +129,7 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     print(args)
+    init_logging()
     if args.subcommand == "run":
         run(args)
     elif args.subcommand == "server":
