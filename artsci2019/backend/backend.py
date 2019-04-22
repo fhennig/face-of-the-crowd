@@ -1,3 +1,4 @@
+from multiprocessing import Process
 from artsci2019.backend.portrait import PortraitGen
 from artsci2019.backend.image_storage import ImageStorage
 
@@ -9,8 +10,10 @@ class Backend:
         self.image_storage = ImageStorage(directory)
 
     def update(self, recognized_frames):
+        p = Process(target=self.image_storage.update, args=(recognized_frames,))
+        p.start()
         changed = self.portrait_gen.update(recognized_frames)
-        self.image_storage.update(recognized_frames)  # TODO parallelize
+        p.join()
         return changed
 
     def get_portrait(self):
