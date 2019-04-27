@@ -63,4 +63,4 @@ class CheckedFrame:
 
         # all
         self.total_score = (self.width_score * self.centre_score * self.height_score) ** 0.5
-        self.all_ok = self.total_score > 0.7
+        self.all_ok = self.total_score > 0.3

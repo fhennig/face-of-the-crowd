@@ -150,6 +150,8 @@ class Application:
             for cf in self.current_checked_frames:
                 print("Score: {}".format(cf.total_score))
             new_genimage = cv2.addWeighted(self.genimage, 1 - score, frame, score, 0)
+            draw_triangles(new_genimage, self.current_checked_frames[0], self.debug_scaling)
+            draw_triangles(new_preview, self.current_checked_frames[0], self.debug_scaling)
             if score > 0.8:
                 print("YO")
                 draw_triangles(new_genimage, self.current_checked_frames[0], self.debug_scaling)
@@ -157,7 +159,7 @@ class Application:
         # Display the resulting image
         cv2.imshow(self.preview_window, new_preview)
         cv2.imshow(self.genimage_window, new_genimage)
-        cv2.waitKey(20)
+        cv2.waitKey(50)
 
         changed = self.portrait_update(self.current_checked_frames)
 
@@ -168,6 +170,7 @@ class Application:
         while rval:
             # get a single frame
             rval, frame = my_get_frame(self.video_capture, self.rotate)
+            # TODO drop frames while processing
 
             # get the faces
             if process_this_frame:
