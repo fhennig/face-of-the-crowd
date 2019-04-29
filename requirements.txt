@@ -4,3 +4,4 @@ argparse
 numpy
 flask
 requests
+pyaudio

@@ -85,7 +85,7 @@ class Application:
     def init(self):
         # initialize window
         cv2.namedWindow(self.preview_window, cv2.WINDOW_NORMAL)
-        cv2.namedWindow(self.genimage_window, cv2.WINDOW_NORMAL)
+        cv2.namedWindow(self.genimage_window, cv2.WINDOW_NORMAL)  # WINDOW_NORMAL required for fullscreen to work
         if self.fullscreen:
             cv2.setWindowProperty(self.genimage_window, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
