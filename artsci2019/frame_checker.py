@@ -9,6 +9,7 @@ class FrameChecker:
         self.centre = int(frame_width / 2)
         self.centre_margin = 60
         self.max_height = 100
+        self.threshold = 0.5
 
     def check(self, recognized_frame):
         return CheckedFrame(self.line_width,
@@ -16,6 +17,7 @@ class FrameChecker:
                             self.centre,
                             self.centre_margin,
                             self.max_height,
+                            self.threshold,
                             recognized_frame)
 
 
@@ -27,11 +29,13 @@ class CheckedFrame:
                  centre,
                  centre_margin,
                  max_height,
+                 threshold,
                  recognized_frame):
         """Takes a recognized frame and analyzes the position of the face to see
         if it is the proper size and in the right position to be used for the portrait."""
         # recognized frame
         self.recognized_frame = recognized_frame
+        self.threshold = threshold
         # left eye, right eye
         self.left_eye = recognized_frame.left_eye
         self.right_eye = recognized_frame.right_eye
@@ -63,4 +67,4 @@ class CheckedFrame:
 
         # all
         self.total_score = (self.width_score * self.centre_score * self.height_score) ** 0.5
-        self.all_ok = self.total_score > 0.3
+        self.all_ok = self.total_score > self.threshold
