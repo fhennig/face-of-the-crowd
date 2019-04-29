@@ -48,3 +48,10 @@ Uses OpenCV and [face_recognition](https://github.com/ageitgey/face_recognition)
 
 - Enhance alignments by using all landmarks as described
   [here](https://www.learnopencv.com/face-morph-using-opencv-cpp-python/).
+
+
+## Licensing
+
+This project uses a sound from freesound: `bing.wav`, originally
+[buttonchime02up.wav](https://freesound.org/people/JustinBW/sounds/80921/),
+created by *JustinBW*.
