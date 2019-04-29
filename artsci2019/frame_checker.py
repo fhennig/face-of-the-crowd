@@ -4,10 +4,10 @@ import numpy as np
 class FrameChecker:
 
     def __init__(self, frame_width, frame_height):
-        self.line_width = 325
-        self.line_width_margin = 70
+        self.line_width = 220
+        self.line_width_margin = 40
         self.centre = int(frame_width / 2)
-        self.centre_margin = 50
+        self.centre_margin = 60
         self.max_height = 100
 
     def check(self, recognized_frame):

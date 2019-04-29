@@ -5,6 +5,7 @@ import numpy as np
 from artsci2019.frame_checker import FrameChecker
 from artsci2019.util import scale_frame, scale_point, is_in_frame
 from artsci2019.face_recog import get_faces
+from artsci2019.sound import SoundPlayer
 
 
 def draw_checked_frame(frame, checked_frame, factor):
@@ -81,6 +82,7 @@ class Application:
         self.current_checked_frames = []
         self.checkpoint_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
         self.frame_checker = None
+        self.sound_player = SoundPlayer("bing.wav")
 
     def init(self):
         # initialize window
@@ -128,6 +130,8 @@ class Application:
                      if cf.all_ok]
         changed = False
         if ok_frames:
+            print("Updating")
+            self.sound_player.play()
             changed = self.pb.update(ok_frames)
         if changed:
             print("Updated")
