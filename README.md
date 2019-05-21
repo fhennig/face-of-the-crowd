@@ -1,53 +1,45 @@
-# ArtSci 2019 Average Face Project
+# The Face of the Crowd
 
-The basic idea is a vertical screen showing a portrait which is an
-average of a bunch of faces.  The faces are pictures taken from
-visitors of the exhibition.
-
-Besides the screen there is a camera, where people can have their
-picture taken and added to the average.
+An interactive installation for the [2019 ArtSci
+exhibition](https://artsci.ethz.ch/) at the ETH in Zürich.  A portrait
+screen shows a face generated from pictures taken from visitors of the
+exhibition.
 
 
-## Motivation
+## Description
 
-The project is meant to convey the fascinating side of science with
-an artistic element.
+The idea behind the project is to convey fascination of technology,
+where the individual elements are well understood but the result still
+seems magical.
 
-(There will be more here in the future.)
+The installation recreates the crowds portrait by combining the
+individual viewers features.  A camera takes pictures of the passing
+viewers, which are then merged together.  The displayed image adjusts
+to the new faces over time, the visitor changes the exhibit by viewing
+it.
 
+The merging is based on 68 landmarks in the picture positioned in the
+eyes, the eyebrows, the nose, the mouth and chin, which are identified
+with facial recognition software.
 
-## Setup / Idea
-
-### Hardware
-
-- FullHD Screen
-  - Hopefully provided by the ETHZ
-- FullHD camera
-  - I need to by that one myself to test
-  
-### Software
-
-- Needs to display a fullscreen image
-- Needs to show a smaller image in the bottom of the frame, which is
-  the life image from the camera
-- Needs to read out the image data from the camera and show it on the
-  screen
-- ML part: Needs to extract the face from the picture
-
-## Implementation
-
-Uses OpenCV and [face_recognition](https://github.com/ageitgey/face_recognition).
+Each landmark position is morphed towards the average positon for that
+landmark, calculated from all pictures.  In this way the individual
+pictures are morphed together, forming the face of the crowd.
 
 
-## Roadmap
+## Exhibition Setup
 
-- To align the faces, face landmarks need to be extracted. DONE
-- Based on the landmarks any rotation of the face can be accounted for. DONE
-- Images need to be saved (maybe for a start just with the press of a
-  button) and then overlayed (using the landmarks). DONE
+At the exhibition, the setup consisted of a large ~ 40" screen in
+portrait mode, and next to it a small picture frame prompting people
+to put their face in the frame.  Behind the frame was a camera
+pointing on the frame.  When the camera triggered, a sound was played.
 
-- Enhance alignments by using all landmarks as described
-  [here](https://www.learnopencv.com/face-morph-using-opencv-cpp-python/).
+
+## References
+
+- OpenCV
+- [face_recognition](https://github.com/ageitgey/face_recognition)
+- [handling landmarks](https://www.learnopencv.com/face-morph-using-opencv-cpp-python/)
 
 
 ## Licensing
@@ -55,3 +47,5 @@ Uses OpenCV and [face_recognition](https://github.com/ageitgey/face_recognition)
 This project uses a sound from freesound: `bing.wav`, originally
 [buttonchime02up.wav](https://freesound.org/people/JustinBW/sounds/80921/),
 created by *JustinBW*.
+
+The project is licensed unter the MIT license.
