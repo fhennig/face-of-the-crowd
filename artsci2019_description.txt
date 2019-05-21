@@ -1,3 +1,5 @@
+Below is the original description for the exhibition:
+
 Title: Face of the Crowd
 
 Description:
@@ -19,6 +21,3 @@ with facial recognition software.
 Each landmark position is morphed towards the average positon for that
 landmark, calculated from all pictures.  In this way the individual
 pictures are morphed together, forming the face of the crowd.
-
------
-
