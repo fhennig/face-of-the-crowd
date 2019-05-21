@@ -66,10 +66,8 @@ def create_parser():
         type=int,
         help="The remote port."
     )
-    run.set_defaults(func=run)
 
     backend = subparsers.add_parser("server")
-    backend.set_defaults(func=backend)
 
     return parser
 
