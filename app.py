@@ -7,24 +7,6 @@ from artsci2019.app import Application
 def create_parser():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        "--stack_size",
-        default=10,
-        type=int,
-        help="The number of images to merge together."
-    )
-    parser.add_argument(
-        "--pool_size",
-        default=4,
-        type=int,
-        help="The number of parallel processes to use."
-    )
-    parser.add_argument(
-        "--image_dir",
-        default="images",
-        help="The directory where the images should be saved."
-    )
-
     subparsers = parser.add_subparsers(
         dest="subcommand"
     )
@@ -68,6 +50,26 @@ def create_parser():
     )
 
     backend = subparsers.add_parser("server")
+
+    # add common commands
+    for p in [run, backend]:
+        p.add_argument(
+            "--stack_size",
+            default=10,
+            type=int,
+            help="The number of images to merge together."
+        )
+        p.add_argument(
+            "--pool_size",
+            default=4,
+            type=int,
+            help="The number of parallel processes to use."
+        )
+        p.add_argument(
+            "--image_dir",
+            default="images",
+            help="The directory where the images should be saved."
+        )
 
     return parser
 
