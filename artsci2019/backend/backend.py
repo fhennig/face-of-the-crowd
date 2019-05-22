@@ -1,16 +1,16 @@
 from multiprocessing import Process
 from artsci2019.backend.portrait import PortraitGen
-from artsci2019.backend.image_storage import ImageStorage
+from artsci2019.backend.image_storage import write_recognized_frames
 
 
 class Backend:
 
     def __init__(self, stack_size, pool_size, directory):
         self.portrait_gen = PortraitGen(stack_size, pool_size)
-        self.image_storage = ImageStorage(directory)
+        self.target_directory = directory
 
     def update(self, recognized_frames):
-        p = Process(target=self.image_storage.update, args=(recognized_frames,))
+        p = Process(target=write_recognized_frames, args=(self.target_directory, recognized_frames))
         p.start()
         changed = self.portrait_gen.update(recognized_frames)
         p.join()

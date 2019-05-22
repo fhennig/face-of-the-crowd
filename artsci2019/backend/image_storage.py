@@ -8,24 +8,23 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ImageStorage:
+def write_recognized_frame(dir, rf):
+    current_date = datetime.datetime.now()
+    date_str = current_date.strftime("%Y-%m-%d-%H-%M-%S-%f")
+    img_filename = os.path.join(dir, date_str + ".png")
+    cv2.imwrite(img_filename, rf.frame)
+    json_filename = os.path.join(dir, date_str + ".json")
+    info = {
+        "date": date_str,
+        "landmarks": rf.face_landmarks
+    }
+    with open(json_filename, "w") as f:
+        json.dump(info, f)
 
-    def __init__(self, directory):
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        self.dir = directory
 
-    def update(self, recognized_frames):
-        logger.info("Writing recognized frames.")
-        for rf in recognized_frames:
-            current_date = datetime.datetime.now()
-            date_str = current_date.strftime("%Y-%m-%d-%H-%M-%S-%f")
-            img_filename = os.path.join(self.dir, date_str + ".png")
-            cv2.imwrite(img_filename, rf.frame)
-            json_filename = os.path.join(self.dir, date_str + ".json")
-            info = {
-                "date": date_str,
-                "landmarks": rf.face_landmarks
-            }
-            with open(json_filename, "w") as f:
-                json.dump(info, f)
+def write_recognized_frames(target_dir, rfs):
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+    logger.info("Writing recognized frames.")
+    for rf in rfs:
+        write_recognized_frame(target_dir, rf)

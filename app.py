@@ -71,6 +71,19 @@ def create_parser():
             help="The directory where the images should be saved."
         )
 
+    portrait = subparsers.add_parser("portrait")
+
+    portrait.add_argument(
+        "--input_dir",
+        default="images",
+        help="The directory with the images to be merged."
+    )
+    portrait.add_argument(
+        "--output_file",
+        default=None,
+        help="The filename of the output image (jpg)."
+    )
+
     return parser
 
 
@@ -125,6 +138,10 @@ def run_backend(args):
     app.run(debug=True)
 
 
+def run_portrait(args):
+    print("run portrait: {}".format(args))
+
+
 def main():
     parser = create_parser()
     args = parser.parse_args()
@@ -134,6 +151,8 @@ def main():
         run(args)
     elif args.subcommand == "server":
         run_backend(args)
+    elif args.subcommand == "portrait":
+        run_portrait(args)
 
 
 if __name__ == "__main__":

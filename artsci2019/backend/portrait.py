@@ -82,6 +82,31 @@ def _align_face(args):
     return align_face(*args)
 
 
+def get_target_landmarks(recognized_frames):
+    a = np.array([rf.face_landmarks for rf in recognized_frames])
+    mean = a.mean(axis=0)
+    mean = mean.astype(np.int32)
+    mean = [tuple(p) for p in mean]
+    return mean
+
+
+def gen_portrait(recognized_frames, pool_size):
+    """Generates a merged portrait with the given images.
+    pool_size is the amount of threads to use while processing."""
+    target_landmarks = get_target_landmarks(recognized_frames)
+    assert len(recognized_frames) > 0
+    # align the images to the target landmarks
+    with Pool(pool_size) as p:
+        l = [(r_f.frame, r_f.face_landmarks, target_landmarks) for r_f in recognized_frames]
+        collected_frames = p.map(_align_face, l)
+    # overlay the aligned images
+    f = np.zeros(shape=collected_frames[0].shape,
+                 dtype=np.uint8)
+    for pframe in collected_frames:
+        cv2.addWeighted(f, 1, pframe, (1 / len(collected_frames)), 0, f)
+    return f
+
+
 class PortraitGen:
 
     def __init__(self, stack_size, pool_size):
@@ -91,37 +116,13 @@ class PortraitGen:
         self.target_landmarks = None
         self.portrait_frame = None
 
-    def _update_frame(self):
-        """Updates the portrait_frame, the generated image."""
-        assert len(self.recognized_frames) > 0
-        # align the images to the target landmarks
-        with Pool(self.pool_size) as p:
-            l = [(r_f.frame, r_f.face_landmarks, self.target_landmarks) for r_f in self.recognized_frames]
-            collected_frames = p.map(_align_face, l)
-        # overlay the aligned images
-        f = np.zeros(shape=collected_frames[0].shape,
-                     dtype=np.uint8)
-        for pframe in collected_frames:
-            cv2.addWeighted(f, 1, pframe, (1 / len(collected_frames)), 0, f)
-        self.portrait_frame = f
-
-    def _update_target_landmarks(self):
-        """Updates the target location of the generated face by calculating
-        the average position from the saved faces."""
-        a = np.array([rf.face_landmarks for rf in self.recognized_frames])
-        mean = a.mean(axis=0)
-        mean = mean.astype(np.int32)
-        mean = [tuple(p) for p in mean]
-        self.target_landmarks = mean
-
     def update(self, recognized_frames):
         """Updates the generated image, the merge of all the faces."""
         if not recognized_frames:
             return False
         self.recognized_frames += recognized_frames
         self.recognized_frames = self.recognized_frames[- self.stack_size:]
-        self._update_target_landmarks()
-        self._update_frame()
+        self.portrait_frame = gen_portrait(self.recognized_frames, self.pool_size)
         return True
 
     def get_portrait(self):
