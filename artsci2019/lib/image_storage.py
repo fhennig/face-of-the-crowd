@@ -3,6 +3,7 @@ import datetime
 import os
 import json
 import logging
+from artsci2019.lib.face_recog import RecognizedFrame
 
 
 logger = logging.getLogger(__name__)
@@ -36,8 +37,14 @@ def write_recognized_frames(target_dir, rfs):
 
 def read_recognized_frames(source_directory):
     rfs = []
-    # TODO
-    # read files
-    # find jpgs
-    # ...
+    img_files = [source_directory + "/" + f
+                 for f in os.listdir(source_directory)
+                 if f.endswith(".png")]
+    for img_file in img_files:
+        img = cv2.imread(img_file)
+        json_file = img_file[:-4] + ".json"
+        with open(json_file, "r") as f:
+            jdir = json.load(f)
+        rf = RecognizedFrame(img, None, [tuple(lm) for lm in jdir["landmarks"]])
+        rfs.append(rf)
     return rfs

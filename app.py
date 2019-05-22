@@ -1,5 +1,9 @@
 #! /usr/bin/env python3
 import argparse
+import logging.config
+
+
+logger = None
 
 
 def create_parser():
@@ -81,7 +85,7 @@ def create_parser():
         default=None,
         help="The filename of the output image (jpg)."
     )
-    p.add_argument(
+    portrait.add_argument(
         "--pool_size",
         default=4,
         type=int,
@@ -89,32 +93,6 @@ def create_parser():
     )
 
     return parser
-
-
-def init_logging():
-    import logging.config
-    logging.config.dictConfig({
-        'version': 1,
-        'formatters': {
-            'standard': {
-                'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
-            }
-        },
-        'handlers': {
-            'default': {
-                'formatter': 'standard',
-                'class': 'logging.StreamHandler',
-                'stream': 'ext://sys.stderr',
-            }
-        },
-        'loggers': {
-            '': {  # root logger
-                'handlers': ['default'],
-                'level': 'INFO',
-                'propagate': True
-            }
-        }
-    })
 
 
 def run_display(args):
@@ -146,16 +124,46 @@ def run_backend(args):
 def run_portrait(args):
     from artsci2019.lib.portrait import gen_portrait
     from artsci2019.lib.image_storage import read_recognized_frames, write_image
+    logger.info("Reading frames ...")
     rfs = read_recognized_frames(args.input_dir)
+    logger.info("Generating Portrait ...")
     f = gen_portrait(rfs, args.pool_size)
+    logger.info("Writing output file ...")
+    if args.output_file == None:
+        args.output_file = args.input_dir + ".png"
     write_image(f, args.output_file)
+    logger.info("Done.")
+
+
+def init_logging():
+    logging.config.dictConfig({
+        'version': 1,
+        'formatters': {
+            'standard': {
+                'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+            }
+        },
+        'handlers': {
+            'default': {
+                'formatter': 'standard',
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://sys.stderr',
+            }
+        },
+        'loggers': {
+            '': {  # root logger
+                'handlers': ['default'],
+                'level': 'INFO',
+                'propagate': True
+            }
+        }
+    })
 
 
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    print(args)
-    init_logging()
+    logger.info("Args: {}".format(args))
     if args.subcommand == "run":
         run_display(args)
     elif args.subcommand == "server":
@@ -165,4 +173,6 @@ def main():
 
 
 if __name__ == "__main__":
+    init_logging()
+    logger = logging.getLogger(__name__)
     main()

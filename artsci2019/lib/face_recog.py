@@ -51,3 +51,10 @@ class RecognizedFrame:
         self.face_landmarks = face_landmarks
         self.left_eye = self.face_landmarks[36]
         self.right_eye = self.face_landmarks[45]
+
+    def __repr__(self):
+        return str([self.frame,
+                    self.face_location,
+                    self.face_landmarks,
+                    self.left_eye,
+                    self.right_eye])

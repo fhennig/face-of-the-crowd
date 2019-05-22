@@ -1,7 +1,11 @@
 import numpy as np
 import cv2
+import logging
 from multiprocessing import Pool
 from artsci2019.lib.util import is_in_frame
+
+
+logger = logging.getLogger(__name__)
 
 
 def generate_edge_points(f_width, f_height):
@@ -32,13 +36,19 @@ def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):
     The frame width and heigth are used for edge points."""
     assert isinstance(face_landmarks, list)
     assert isinstance(targets, list)
+    logger.debug("delaunay mapping: frame: {} {}".format(frame_w, frame_h))
+    logger.debug("delaunay mapping: face_landmarks: {}".format(face_landmarks))
+    logger.debug("delaunay mapping: targets: {}".format(targets))
 
     point_map = dict(zip(face_landmarks, targets))
+
+    logger.debug("LALAL")
 
     # prep delaunay
     rect = (0, 0, frame_w, frame_h)
     edge_points = generate_edge_points(frame_w, frame_h)
     for ep in edge_points:
+        logger.debug("ep: {}".format(ep))
         point_map[ep] = ep
     subdiv = cv2.Subdiv2D(rect)
     for lm in face_landmarks:
@@ -46,6 +56,8 @@ def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):
             subdiv.insert(lm)
     for p in edge_points:
         subdiv.insert(p)
+
+    logger.debug(("delaunay mapping: CHECKPOINT"))
 
     triangle_mapping = []
     for triangle in subdiv.getTriangleList():
@@ -60,8 +72,10 @@ def align_face(frame, face_landmarks, lm_targets):
     """Takes a frame and face_landmarks and centers the image and warps
     it.  Returns a frame again, same size as input.
     """
+    logger.debug("Aligning face ...")
     f_h, f_w, _ = frame.shape
     triangle_mapping = get_delaunay_mapping(face_landmarks, lm_targets, f_w, f_h)
+    logger.debug(("Triangle mapping generated. "))
 
     new_frame = np.zeros(frame.shape, dtype=frame.dtype)
 
@@ -74,12 +88,14 @@ def align_face(frame, face_landmarks, lm_targets):
         cv2.fillConvexPoly(new_frame, target, 0)
         cv2.add(new_frame, f, dst=new_frame, mask=mask)
 
+    logger.debug("Aligning face done.")
     return new_frame
 
 
 def _align_face(args):
     """Helper function for parallelization"""
-    return align_face(*args)
+    logger.info("Aligning face {}".format(args[3]))
+    return align_face(args[0], args[1], args[2])
 
 
 def get_target_landmarks(recognized_frames):
@@ -93,11 +109,17 @@ def get_target_landmarks(recognized_frames):
 def gen_portrait(recognized_frames, pool_size):
     """Generates a merged portrait with the given images.
     pool_size is the amount of threads to use while processing."""
-    target_landmarks = get_target_landmarks(recognized_frames)
+    logger.info("gen portrait: given frames count: {}".format(len(recognized_frames)))
+    logger.debug("recognized_frames: {}".format(recognized_frames))
     assert len(recognized_frames) > 0
+    target_landmarks = get_target_landmarks(recognized_frames)
+    logger.debug("target_landmarks: {}".format(target_landmarks))
     # align the images to the target landmarks
     with Pool(pool_size) as p:
-        l = [(r_f.frame, r_f.face_landmarks, target_landmarks) for r_f in recognized_frames]
+        l = []
+        for i, rf in enumerate(recognized_frames):
+            l.append((rf.frame, rf.face_landmarks, target_landmarks, i))
+        logger.debug("l: {}".format(l))
         collected_frames = p.map(_align_face, l)
     # overlay the aligned images
     f = np.zeros(shape=collected_frames[0].shape,
