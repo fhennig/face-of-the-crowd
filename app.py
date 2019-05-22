@@ -1,8 +1,6 @@
 #! /usr/bin/env python3
 import argparse
 
-from artsci2019.app import Application
-
 
 def create_parser():
     parser = argparse.ArgumentParser()
@@ -11,38 +9,38 @@ def create_parser():
         dest="subcommand"
     )
 
-    run = subparsers.add_parser("run")
+    display = subparsers.add_parser("display")
 
-    run.add_argument(
+    display.add_argument(
         "--camera_input",
         default=1,
         type=int,
         help="Which camera to use."
     )
-    run.add_argument(
+    display.add_argument(
         "--rotate",
         action='store_true',
         default=False,
         help="Whether to rotate the image."
     )
-    run.add_argument(
+    display.add_argument(
         "--fullscreen",
         action='store_true',
         default=False,
         help="Whether to display the generated image fullscreen."
     )
-    run.add_argument(
+    display.add_argument(
         "--remote",
         action='store_true',
         default=False,
         help="Whether to use a remote rpc or run everything locally."
     )
-    run.add_argument(
+    display.add_argument(
         "--host",
         default="127.0.0.1",
         help="The remote host IP adress."
     )
-    run.add_argument(
+    display.add_argument(
         "--port",
         default=5000,
         type=int,
@@ -52,7 +50,7 @@ def create_parser():
     backend = subparsers.add_parser("server")
 
     # add common commands
-    for p in [run, backend]:
+    for p in [display, backend]:
         p.add_argument(
             "--stack_size",
             default=10,
@@ -82,6 +80,12 @@ def create_parser():
         "--output_file",
         default=None,
         help="The filename of the output image (jpg)."
+    )
+    p.add_argument(
+        "--pool_size",
+        default=4,
+        type=int,
+        help="The number of parallel processes to use."
     )
 
     return parser
@@ -113,17 +117,18 @@ def init_logging():
     })
 
 
-def run(args):
+def run_display(args):
+    from artsci2019.display import InteractiveDisplay
     if args.remote:
-        from artsci2019.rpc.client import RemoteBackend
+        from artsci2019.displaybackend.rpc.client import RemoteBackend
         processing_backend = RemoteBackend(args.host, args.port)
     else:
-        from artsci2019.backend.backend import Backend
+        from artsci2019.displaybackend.backend import Backend
         processing_backend = Backend(args.stack_size, args.pool_size, args.image_dir)
-    a = Application(args.camera_input,
-                    args.rotate,
-                    args.fullscreen,
-                    processing_backend)
+    a = InteractiveDisplay(args.camera_input,
+                           args.rotate,
+                           args.fullscreen,
+                           processing_backend)
     init_successful = a.init()
     if not init_successful:
         print("Error in init.")
@@ -133,13 +138,17 @@ def run(args):
 
 
 def run_backend(args):
-    from artsci2019.rpc.server import create_app
+    from artsci2019.displaybackend.rpc.server import create_app
     app = create_app(args.stack_size, args.pool_size, args.image_dir)
     app.run(debug=True)
 
 
 def run_portrait(args):
-    print("run portrait: {}".format(args))
+    from artsci2019.lib.portrait import gen_portrait
+    from artsci2019.lib.image_storage import read_recognized_frames, write_image
+    rfs = read_recognized_frames(args.input_dir)
+    f = gen_portrait(rfs, args.pool_size)
+    write_image(f, args.output_file)
 
 
 def main():
@@ -148,7 +157,7 @@ def main():
     print(args)
     init_logging()
     if args.subcommand == "run":
-        run(args)
+        run_display(args)
     elif args.subcommand == "server":
         run_backend(args)
     elif args.subcommand == "portrait":

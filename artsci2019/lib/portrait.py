@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 from multiprocessing import Pool
-from artsci2019.util import is_in_frame
+from artsci2019.lib.util import is_in_frame
 
 
 def generate_edge_points(f_width, f_height):

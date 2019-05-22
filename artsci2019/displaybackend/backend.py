@@ -1,6 +1,6 @@
 from multiprocessing import Process
-from artsci2019.backend.portrait import PortraitGen
-from artsci2019.backend.image_storage import write_recognized_frames
+from artsci2019.lib.portrait import PortraitGen
+from artsci2019.lib.image_storage import write_recognized_frames
 
 
 class Backend:

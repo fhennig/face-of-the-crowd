@@ -2,10 +2,10 @@ import datetime
 import cv2
 import numpy as np
 
-from artsci2019.frame_checker import FrameChecker
-from artsci2019.util import scale_frame, scale_point, is_in_frame
-from artsci2019.face_recog import get_faces
-from artsci2019.sound import SoundPlayer
+from artsci2019.lib.frame_checker import FrameChecker
+from artsci2019.lib.util import scale_frame, scale_point, is_in_frame
+from artsci2019.lib.face_recog import get_faces
+from artsci2019.lib.sound import SoundPlayer
 
 
 def draw_checked_frame(frame, checked_frame, factor):
@@ -64,7 +64,7 @@ def my_get_frame(video_capture, rotate):
     return rval, frame
 
 
-class Application:
+class InteractiveDisplay:
     def __init__(self, camera_number, rotate, fullscreen, processing_backend):
         self.camera_number = camera_number
         self.rotate = rotate

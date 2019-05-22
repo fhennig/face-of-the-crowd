@@ -8,6 +8,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def write_image(frame, filename):
+    cv2.imwrite(filename, frame)
+
+
 def write_recognized_frame(dir, rf):
     current_date = datetime.datetime.now()
     date_str = current_date.strftime("%Y-%m-%d-%H-%M-%S-%f")
@@ -28,3 +32,12 @@ def write_recognized_frames(target_dir, rfs):
     logger.info("Writing recognized frames.")
     for rf in rfs:
         write_recognized_frame(target_dir, rf)
+
+
+def read_recognized_frames(source_directory):
+    rfs = []
+    # TODO
+    # read files
+    # find jpgs
+    # ...
+    return rfs

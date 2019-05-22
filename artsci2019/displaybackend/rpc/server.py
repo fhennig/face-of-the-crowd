@@ -1,10 +1,12 @@
 from flask import Flask
 from flask import request
-from artsci2019.backend.backend import Backend
+from artsci2019.displaybackend.backend import Backend
 import pickle
 
 
 def create_app(stack_size, thread_count, directory):
+    """Returns a flask app provinding two api endpoints.
+    The server communicates with the RemoteBackend in client.py."""
     app = Flask(__name__)
     backend = Backend(stack_size, thread_count, directory)
 
