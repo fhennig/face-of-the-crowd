@@ -5,7 +5,7 @@ exhibition](https://artsci.ethz.ch/) at the ETH in Zürich.  A portrait
 screen shows a face generated from pictures taken from visitors of the
 exhibition.
 
-![the generated image over time](doc/output_s2_1.webm)
+![the generated image over time](doc/out_stack7_loop.gif)
 
 
 ## Description
