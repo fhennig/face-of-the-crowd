@@ -40,6 +40,7 @@ def read_recognized_frames(source_directory):
     img_files = [source_directory + "/" + f
                  for f in os.listdir(source_directory)
                  if f.endswith(".png")]
+    img_files.sort()
     for img_file in img_files:
         img = cv2.imread(img_file)
         json_file = img_file[:-4] + ".json"

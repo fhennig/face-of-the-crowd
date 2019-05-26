@@ -92,6 +92,37 @@ def create_parser():
         help="The number of parallel processes to use."
     )
 
+    genvideo = subparsers.add_parser("genvideo")
+
+    genvideo.add_argument(
+        "--input_dir",
+        default="images",
+        help="The directory with the images to be merged."
+    )
+    genvideo.add_argument(
+        "--output_file",
+        default=None,
+        help="The filename of the output image (jpg)."
+    )
+    genvideo.add_argument(
+        "--pool_size",
+        default=4,
+        type=int,
+        help="The number of parallel processes to use."
+    )
+    genvideo.add_argument(
+        "--stack_size",
+        default=10,
+        type=int,
+        help="The number of images to merge together."
+    )
+    genvideo.add_argument(
+        "--loop",
+        action='store_true',
+        default=False,
+        help="If the video should look like a loop or not."
+    )
+
     return parser
 
 
@@ -135,6 +166,16 @@ def run_portrait(args):
     logger.info("Done.")
 
 
+def run_genvideo(args):
+    from artsci2019.videogen import run_genvideo
+    run_genvideo(args.input_dir,
+                 "temp",
+                 args.output_file,
+                 args.stack_size,
+                 args.pool_size,
+                 args.loop)
+
+
 def init_logging():
     logging.config.dictConfig({
         'version': 1,
@@ -153,7 +194,7 @@ def init_logging():
         'loggers': {
             '': {  # root logger
                 'handlers': ['default'],
-                'level': 'INFO',
+                'level': 'DEBUG',
                 'propagate': True
             }
         }
@@ -164,12 +205,14 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     logger.info("Args: {}".format(args))
-    if args.subcommand == "run":
+    if args.subcommand == "display":
         run_display(args)
     elif args.subcommand == "server":
         run_backend(args)
     elif args.subcommand == "portrait":
         run_portrait(args)
+    elif args.subcommand == "genvideo":
+        run_genvideo(args)
 
 
 if __name__ == "__main__":
