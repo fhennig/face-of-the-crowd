@@ -1,6 +1,6 @@
 import face_recognition
 import cv2
-from artsci2019.lib.util import scale_face_landmarkss, scale_face_locations
+from artsci2019.lib.util import scale_face_landmarkss, RecognizedFrame
 
 
 def _face_landmarks_to_list(face_landmarks):
@@ -26,35 +26,19 @@ def get_faces(frame, scaling_factor):
 
     # Only process every other frame of video to save time
     # Find all the faces and face encodings in the current frame of video
-    face_locations = face_recognition.face_locations(rgb_small_frame)
     face_landmarkss = face_recognition.face_landmarks(rgb_small_frame)
     face_landmarkss = [_face_landmarks_to_list(flms) for flms in face_landmarkss]
     # Scale them back up
-    face_locations = scale_face_locations(face_locations, scaling_factor)
     face_landmarkss = scale_face_landmarkss(face_landmarkss, scaling_factor)
 
     r_frames = []
 
-    for i in range(len(face_locations)):
+    for i in range(len(face_landmarkss)):
         r_frame = RecognizedFrame(frame,
-                                  face_locations[i],
                                   face_landmarkss[i])
         r_frames.append(r_frame)
 
     return r_frames
 
 
-class RecognizedFrame:
-    def __init__(self, frame, face_loc, face_landmarks):
-        self.frame = frame
-        self.face_location = face_loc
-        self.face_landmarks = face_landmarks
-        self.left_eye = self.face_landmarks[36]
-        self.right_eye = self.face_landmarks[45]
 
-    def __repr__(self):
-        return str([self.frame,
-                    self.face_location,
-                    self.face_landmarks,
-                    self.left_eye,
-                    self.right_eye])

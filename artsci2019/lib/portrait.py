@@ -21,6 +21,17 @@ def generate_edge_points(f_width, f_height):
             (f_width, f_height)]
 
 
+def frame_points():
+    return [(50, 392),
+            (42, 1036),
+            (72, 1736),
+            (518, 370),
+            (540, 1742),
+            (1000, 374),
+            (1034, 1006),
+            (1024, 1714)]
+
+
 def draw_triangle(frame, triangle):
     pt1 = tuple(triangle[0])
     pt2 = tuple(triangle[1])
@@ -47,6 +58,7 @@ def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):
     # prep delaunay
     rect = (0, 0, frame_w, frame_h)
     edge_points = generate_edge_points(frame_w, frame_h)
+    edge_points += frame_points()
     for ep in edge_points:
         logger.debug("ep: {}".format(ep))
         point_map[ep] = ep

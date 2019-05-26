@@ -55,10 +55,11 @@ def run_genanimation(input_dir, intermediate_dir, output_file, stack_size, pool_
 def run_portrait(input_dir, pool_size, output_file):
     logger.info("Reading frames ...")
     rfs = read_recognized_frames(input_dir)
+    # rfs = [rf.cropped(1080, 1773 - 333, 0, 333) for rf in rfs]
     logger.info("Generating Portrait ...")
     f = gen_portrait(rfs, pool_size)
     logger.info("Writing output file ...")
-    if output_file == None:
+    if not output_file:
         output_file = input_dir + ".png"
     write_image(f, output_file)
     logger.info("Done.")
