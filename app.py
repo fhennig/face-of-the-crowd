@@ -99,7 +99,8 @@ gengif: Generates a gif from the images in the image dir.
     parser.add_argument(
         "--stable_points",
         default="[]",
-        help="A list of points that are stable in each image."
+        help="A list of points that are stable in each image.\n" +
+             "Can also be a file.  The format is [[x1, y1], [x2, y2], ...]"
     )
 
     return parser

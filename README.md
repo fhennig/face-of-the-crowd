@@ -1,32 +1,25 @@
 # The Face of the Crowd
 
 An interactive installation for the [2019 ArtSci
-exhibition](https://artsci.ethz.ch/) at the ETH in Zürich.  A portrait
-screen shows a face generated from pictures taken from visitors of the
-exhibition.
+exhibition](https://artsci.ethz.ch/) at the ETH in Zürich based on
+facial recognition.  A portrait screen shows a face generated from
+pictures taken from visitors of the exhibition.
 
 ![the generated image over time](doc/out_stack7_loop.gif)
 
+The displayed images over time, each frame is a merge picture of the
+last 7 faces.
 
-## Description
+## Motivation
 
-The idea behind the project is to convey fascination of technology,
-where the individual elements are well understood but the result still
-seems magical.
+The project was created specifically for the [ArtSci
+exhibition](https://artsci.ethz.ch/) 2019, with the theme "An
+exhibition celebrating the intersection of art and science through the
+artistic expression(s) and communication of science."
 
-The installation recreates the crowds portrait by combining the
-individual viewers features.  A camera takes pictures of the passing
-viewers, which are then merged together.  The displayed image adjusts
-to the new faces over time, the visitor changes the exhibit by viewing
-it.
-
-The merging is based on 68 landmarks in the picture positioned in the
-eyes, the eyebrows, the nose, the mouth and chin, which are identified
-with facial recognition software.
-
-Each landmark position is morphed towards the average positon for that
-landmark, calculated from all pictures.  In this way the individual
-pictures are morphed together, forming the face of the crowd.
+As a computer science student, I wanted to convey the feeling of magic
+that is sometimes created by technology.  Even if the individual parts
+are well understood, the results can sometimes be surprising.
 
 
 ## Exhibition Setup
@@ -34,15 +27,29 @@ pictures are morphed together, forming the face of the crowd.
 At the exhibition, the setup consisted of a large ~ 40" screen in
 portrait mode, and next to it a small picture frame prompting people
 to put their face in the frame.  Behind the frame was a camera
-pointing on the frame.  When the camera triggered, a sound was played.
+pointing on the frame.  The camera triggered when a face was in the
+frame.  When the camera takes a picture a sound is played to indicate
+that a picture was taken.
+
+The screen shows a merged face based on the last pictures taken (at
+the ArtSci exhibition the last 5 pictures were used).  The merging is
+based on 68 facial landmarks positioned around the eyes, the eyebrows,
+the nose, the mouth and chin.  Each landmark position is morphed
+towards the average positon for that landmark, calculated from all
+pictures.  In this way the individual pictures are morphed together,
+forming the face of the crowd.
 
 ![the faces merged together](doc/merged_portrait.png)
 
+This is the image generated from merging all the pictures taken over
+the course of the exhibition.
 
-## References
+
+## Main Resources Used
 
 - OpenCV
 - [face_recognition](https://github.com/ageitgey/face_recognition)
+- [average face generation](https://www.learnopencv.com/average-face-opencv-c-python-tutorial/)
 - [handling landmarks](https://www.learnopencv.com/face-morph-using-opencv-cpp-python/)
 
 

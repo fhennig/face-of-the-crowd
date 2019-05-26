@@ -9,16 +9,6 @@ import subprocess
 logger = logging.getLogger(__name__)
 
 
-FRAME_POINTS = [(50, 392),
-                (42, 1036),
-                (72, 1736),
-                (518, 370),
-                (540, 1742),
-                (1000, 374),
-                (1034, 1006),
-                (1024, 1714)]
-
-
 def gen_portraits(rfs, stack_size, pool_size, loop, stable_points):
     """Takes a sequence of recognized frames,
     the stack size (how many pictures to stack per portrait),
