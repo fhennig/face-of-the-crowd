@@ -1,5 +1,5 @@
 from artsci2019.lib.portrait import gen_portrait
-from artsci2019.lib.image_storage import read_recognized_frames
+from artsci2019.lib.image_storage import read_recognized_frames, write_image
 import logging
 import cv2
 import os
@@ -36,13 +36,12 @@ def generate_video(input_dir, output_file):
     subprocess.call([
         'ffmpeg',
         '-r', '10',
-        '-pattern_type', 'glob',
-        '-i', input_dir + "/*.png",
+        '-i', input_dir + "/%06d.png",
         output_file
     ])
 
 
-def run_genvideo(input_dir, intermediate_dir, output_file, stack_size, pool_size, loop):
+def run_genanimation(input_dir, intermediate_dir, output_file, stack_size, pool_size, loop):
     logger.info("Reading frames from {} ...".format(input_dir))
     rfs = read_recognized_frames(input_dir)
     logger.info("Generating portraits ...")
@@ -51,3 +50,15 @@ def run_genvideo(input_dir, intermediate_dir, output_file, stack_size, pool_size
     write_intermediate_files(portraits, intermediate_dir)
     logger.info("Generating video ...")
     generate_video(intermediate_dir, output_file)
+
+
+def run_portrait(input_dir, pool_size, output_file):
+    logger.info("Reading frames ...")
+    rfs = read_recognized_frames(input_dir)
+    logger.info("Generating Portrait ...")
+    f = gen_portrait(rfs, pool_size)
+    logger.info("Writing output file ...")
+    if output_file == None:
+        output_file = input_dir + ".png"
+    write_image(f, output_file)
+    logger.info("Done.")

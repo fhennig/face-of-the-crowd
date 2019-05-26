@@ -153,27 +153,18 @@ def run_backend(args):
 
 
 def run_portrait(args):
-    from artsci2019.lib.portrait import gen_portrait
-    from artsci2019.lib.image_storage import read_recognized_frames, write_image
-    logger.info("Reading frames ...")
-    rfs = read_recognized_frames(args.input_dir)
-    logger.info("Generating Portrait ...")
-    f = gen_portrait(rfs, args.pool_size)
-    logger.info("Writing output file ...")
-    if args.output_file == None:
-        args.output_file = args.input_dir + ".png"
-    write_image(f, args.output_file)
-    logger.info("Done.")
+    from artsci2019.imagegen import run_portrait
+    run_portrait(args.input_dir, args.pool_size, args.output_file)
 
 
 def run_genvideo(args):
-    from artsci2019.videogen import run_genvideo
-    run_genvideo(args.input_dir,
-                 "temp",
-                 args.output_file,
-                 args.stack_size,
-                 args.pool_size,
-                 args.loop)
+    from artsci2019.imagegen import run_genanimation
+    run_genanimation(args.input_dir,
+                     "temp",
+                     args.output_file,
+                     args.stack_size,
+                     args.pool_size,
+                     args.loop)
 
 
 def init_logging():
