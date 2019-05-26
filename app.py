@@ -133,7 +133,7 @@ def run_display(args):
         processing_backend = RemoteBackend(args.host, args.port)
     else:
         from artsci2019.displaybackend.backend import Backend
-        processing_backend = Backend(args.stack_size, args.pool_size, args.image_dir)
+        processing_backend = Backend(args.stack_size, args.pool_size, [], args.image_dir)  # TODO stable points
     a = InteractiveDisplay(args.camera_input,
                            args.rotate,
                            args.fullscreen,
@@ -148,7 +148,7 @@ def run_display(args):
 
 def run_backend(args):
     from artsci2019.displaybackend.rpc.server import create_app
-    app = create_app(args.stack_size, args.pool_size, args.image_dir)
+    app = create_app(args.stack_size, args.pool_size, [], args.image_dir)  # TODO stable points
     app.run(debug=True)
 
 

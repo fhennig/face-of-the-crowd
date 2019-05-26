@@ -6,13 +6,12 @@ from artsci2019.lib.util import scale_face_landmarkss, RecognizedFrame
 def _face_landmarks_to_list(face_landmarks):
     """Takes a dict of the face landmarks and turns it into a single list
     of tuples."""
-    l = []
+    res = []
     for area in ['chin', 'left_eyebrow', 'right_eyebrow', 'nose_bridge', 'nose_tip',
                  'left_eye', 'right_eye', 'top_lip', 'bottom_lip']:
         for lm in face_landmarks[area]:
-            l.append(lm)
-    return l
-
+            res.append(lm)
+    return res
 
 
 def get_faces(frame, scaling_factor):

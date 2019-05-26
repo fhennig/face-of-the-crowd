@@ -5,8 +5,8 @@ from artsci2019.lib.image_storage import write_recognized_frames
 
 class Backend:
 
-    def __init__(self, stack_size, pool_size, directory):
-        self.portrait_gen = PortraitGen(stack_size, pool_size)
+    def __init__(self, stack_size, pool_size, stable_points, directory):
+        self.portrait_gen = PortraitGen(stack_size, pool_size, stable_points)
         self.target_directory = directory
 
     def update(self, recognized_frames):

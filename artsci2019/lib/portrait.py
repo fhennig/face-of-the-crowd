@@ -21,17 +21,6 @@ def generate_edge_points(f_width, f_height):
             (f_width, f_height)]
 
 
-def frame_points():
-    return [(50, 392),
-            (42, 1036),
-            (72, 1736),
-            (518, 370),
-            (540, 1742),
-            (1000, 374),
-            (1034, 1006),
-            (1024, 1714)]
-
-
 def draw_triangle(frame, triangle):
     pt1 = tuple(triangle[0])
     pt2 = tuple(triangle[1])
@@ -41,10 +30,11 @@ def draw_triangle(frame, triangle):
     cv2.line(frame, pt3, pt1, (0, 255, 0), 4, 8, 0)
 
 
-def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):
+def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h, stable_points=[]):
     """Takes a list of face landmarks and a corresponding list of targets.
     Returns a list of tuples of triangles [(src_triangle, target_triangle)].
-    The frame width and heigth are used for edge points."""
+    The frame width and heigth are used for edge points.
+    Optionally a list of stable points can be given."""
     assert isinstance(face_landmarks, list)
     assert isinstance(targets, list)
     logger.debug("delaunay mapping: frame: {} {}".format(frame_w, frame_h))
@@ -58,7 +48,7 @@ def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):
     # prep delaunay
     rect = (0, 0, frame_w, frame_h)
     edge_points = generate_edge_points(frame_w, frame_h)
-    edge_points += frame_points()
+    edge_points += stable_points
     for ep in edge_points:
         logger.debug("ep: {}".format(ep))
         point_map[ep] = ep
@@ -80,13 +70,13 @@ def get_delaunay_mapping(face_landmarks, targets, frame_w, frame_h):
     return triangle_mapping
 
 
-def align_face(frame, face_landmarks, lm_targets):
+def align_face(frame, face_landmarks, lm_targets, stable_points):
     """Takes a frame and face_landmarks and centers the image and warps
     it.  Returns a frame again, same size as input.
     """
     logger.debug("Aligning face ...")
     f_h, f_w, _ = frame.shape
-    triangle_mapping = get_delaunay_mapping(face_landmarks, lm_targets, f_w, f_h)
+    triangle_mapping = get_delaunay_mapping(face_landmarks, lm_targets, f_w, f_h, stable_points)
     logger.debug(("Triangle mapping generated. "))
 
     new_frame = np.zeros(frame.shape, dtype=frame.dtype)
@@ -106,8 +96,8 @@ def align_face(frame, face_landmarks, lm_targets):
 
 def _align_face(args):
     """Helper function for parallelization"""
-    logger.info("Aligning face {}".format(args[3]))
-    return align_face(args[0], args[1], args[2])
+    logger.info("Aligning face {}".format(args[4]))
+    return align_face(args[0], args[1], args[2], args[3])
 
 
 def get_target_landmarks(recognized_frames):
@@ -118,7 +108,7 @@ def get_target_landmarks(recognized_frames):
     return mean
 
 
-def gen_portrait(recognized_frames, pool_size):
+def gen_portrait(recognized_frames, pool_size, stable_points):
     """Generates a merged portrait with the given images.
     pool_size is the amount of threads to use while processing."""
     logger.info("gen portrait: given frames count: {}".format(len(recognized_frames)))
@@ -130,7 +120,7 @@ def gen_portrait(recognized_frames, pool_size):
     with Pool(pool_size) as p:
         l = []
         for i, rf in enumerate(recognized_frames):
-            l.append((rf.frame, rf.face_landmarks, target_landmarks, i))
+            l.append((rf.frame, rf.face_landmarks, target_landmarks, stable_points, i))
         logger.debug("l: {}".format(l))
         collected_frames = p.map(_align_face, l)
     # overlay the aligned images
@@ -143,9 +133,10 @@ def gen_portrait(recognized_frames, pool_size):
 
 class PortraitGen:
 
-    def __init__(self, stack_size, pool_size):
+    def __init__(self, stack_size, pool_size, stable_points):
         self.stack_size = stack_size
         self.pool_size = pool_size
+        self.stable_points = stable_points
         self.recognized_frames = []
         self.target_landmarks = None
         self.portrait_frame = None
@@ -156,7 +147,7 @@ class PortraitGen:
             return False
         self.recognized_frames += recognized_frames
         self.recognized_frames = self.recognized_frames[- self.stack_size:]
-        self.portrait_frame = gen_portrait(self.recognized_frames, self.pool_size)
+        self.portrait_frame = gen_portrait(self.recognized_frames, self.pool_size, self.stable_points)
         return True
 
     def get_portrait(self):

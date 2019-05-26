@@ -9,7 +9,17 @@ import subprocess
 logger = logging.getLogger(__name__)
 
 
-def gen_portraits(rfs, stack_size, pool_size, loop):
+FRAME_POINTS = [(50, 392),
+                (42, 1036),
+                (72, 1736),
+                (518, 370),
+                (540, 1742),
+                (1000, 374),
+                (1034, 1006),
+                (1024, 1714)]
+
+
+def gen_portraits(rfs, stack_size, pool_size, loop, stable_points):
     """Takes a sequence of recognized frames,
     the stack size (how many pictures to stack per portrait),
     the pool size (how many threads to use),
@@ -18,7 +28,7 @@ def gen_portraits(rfs, stack_size, pool_size, loop):
         rfs = rfs + rfs[:stack_size - 1]
     frames = []
     for i in range(len(rfs) - stack_size):
-        portrait = gen_portrait(rfs[i:i + stack_size], pool_size)
+        portrait = gen_portrait(rfs[i:i + stack_size], pool_size, stable_points)
         frames.append(portrait)
     return frames
 
@@ -45,7 +55,7 @@ def run_genanimation(input_dir, intermediate_dir, output_file, stack_size, pool_
     logger.info("Reading frames from {} ...".format(input_dir))
     rfs = read_recognized_frames(input_dir)
     logger.info("Generating portraits ...")
-    portraits = gen_portraits(rfs, stack_size, pool_size, loop)
+    portraits = gen_portraits(rfs, stack_size, pool_size, loop, FRAME_POINTS)
     logger.info("Writing portraits ...")
     write_intermediate_files(portraits, intermediate_dir)
     logger.info("Generating video ...")
@@ -57,7 +67,7 @@ def run_portrait(input_dir, pool_size, output_file):
     rfs = read_recognized_frames(input_dir)
     # rfs = [rf.cropped(1080, 1773 - 333, 0, 333) for rf in rfs]
     logger.info("Generating Portrait ...")
-    f = gen_portrait(rfs, pool_size)
+    f = gen_portrait(rfs, pool_size, FRAME_POINTS)
     logger.info("Writing output file ...")
     if not output_file:
         output_file = input_dir + ".png"
