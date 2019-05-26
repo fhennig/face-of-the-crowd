@@ -5,6 +5,8 @@ exhibition](https://artsci.ethz.ch/) at the ETH in Zürich.  A portrait
 screen shows a face generated from pictures taken from visitors of the
 exhibition.
 
+![the generated image over time][doc/output_s2_1.webm]
+
 
 ## Description
 
@@ -33,6 +35,8 @@ At the exhibition, the setup consisted of a large ~ 40" screen in
 portrait mode, and next to it a small picture frame prompting people
 to put their face in the frame.  Behind the frame was a camera
 pointing on the frame.  When the camera triggered, a sound was played.
+
+![the faces merged together][doc/merged_portrait.png]
 
 
 ## References
