@@ -45,6 +45,28 @@ This is the image generated from merging all the pictures taken over
 the course of the exhibition.
 
 
+## How to generate GIFs
+
+Initially the data available is just pictures and the `json` file
+containing information of the face landmarks.
+
+Also there is the file `frame_points.json` which specifies additional
+points to keep stable throughout the animation.  These are some
+landmarks on the frame.
+
+The following script generates a gif:
+
+```
+./app.py gengif --stable_points frame_points.json --stack_size 7 --loop --output_file out.gif
+```
+
+It reads files from the default input directory `images`.  It
+generates files in an intermediate directory called `temp`.  The
+images in here can then also be processed using the `gifgen.sh` script
+to create a gif that is smaller in size by choosing a better color
+palette for the gif.
+
+
 ## Main Resources Used
 
 - OpenCV
