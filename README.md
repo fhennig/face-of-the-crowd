@@ -39,7 +39,7 @@ towards the average positon for that landmark, calculated from all
 pictures.  In this way the individual pictures are morphed together,
 forming the face of the crowd.
 
-![the faces merged together](doc/merged_portrait.png)
+![the faces merged together](doc/merged_portrait_small.jpg)
 
 This is the image generated from merging all the pictures taken over
 the course of the exhibition.
