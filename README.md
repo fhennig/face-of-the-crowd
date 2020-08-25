@@ -45,6 +45,13 @@ This is the image generated from merging all the pictures taken over
 the course of the exhibition.
 
 
+## Digital Science Night 2020 Hamburg
+
+The exhibit was also shown at the Digital Science Night 2020 in
+Hamburg, the animation of the faces from that night are found on
+Twitter
+[here](https://twitter.com/basecampUHH/status/1223276093442002944).
+
 ## How to generate GIFs
 
 Initially the data available is just pictures and the `json` file
